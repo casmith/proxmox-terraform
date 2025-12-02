@@ -1,2 +1,7 @@
 [tools]
+ansible = "latest"
+python = "latest"
 terraform = "latest"
+
+[tasks.tfapply]
+run = "terraform apply -var-file='secrets.tfvars'"
