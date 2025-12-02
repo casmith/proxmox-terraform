@@ -5,6 +5,7 @@ terraform.tfstate
 terraform.tfstate.backup
 *.tfstate
 *.tfstate.*
+terraform-apply.log
 
 # Variable files with secrets
 secrets.tfvars
