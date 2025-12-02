@@ -57,16 +57,21 @@ qm template 9000
 
 ### 3. Configure Terraform Variables
 
-1. Copy the example variables file:
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   ```
+This project separates secrets from configuration for better security:
 
-2. Edit `terraform.tfvars` and fill in your values:
+1. **Copy and configure secrets** (NOT committed to git):
+   ```bash
+   cp secrets.tfvars.example secrets.tfvars
+   ```
+   Edit `secrets.tfvars` and add:
    - Proxmox API token ID and secret
    - Your SSH public key
-   - VM configuration (name, size, IP address, etc.)
-   - Storage and network settings
+
+2. **Edit VM configuration** (safe to commit):
+   Edit `terraform.tfvars` to customize:
+   - VM name, CPU, memory, disk size
+   - Network configuration
+   - Storage and template settings
 
 ### 4. Initialize and Apply Terraform
 
@@ -74,15 +79,17 @@ qm template 9000
 # Initialize Terraform (download providers)
 mise exec -- terraform init
 
-# Preview the changes
-mise exec -- terraform plan
+# Preview the changes (using both config and secrets)
+mise exec -- terraform plan -var-file="secrets.tfvars"
 
 # Create the VM
-mise exec -- terraform apply
+mise exec -- terraform apply -var-file="secrets.tfvars"
 
 # When done, destroy the VM (optional)
-mise exec -- terraform destroy
+mise exec -- terraform destroy -var-file="secrets.tfvars"
 ```
+
+**Note**: Always include `-var-file="secrets.tfvars"` when running Terraform commands.
 
 ## Configuration Files
 
@@ -90,8 +97,9 @@ mise exec -- terraform destroy
 - `variables.tf` - Variable definitions with defaults
 - `main.tf` - VM resource definition
 - `outputs.tf` - Output values after VM creation
-- `terraform.tfvars` - Your actual variable values (not committed to git)
-- `terraform.tfvars.example` - Example variable values
+- `terraform.tfvars` - VM configuration (safe to commit)
+- `secrets.tfvars` - API tokens and SSH keys (NOT committed to git)
+- `secrets.tfvars.example` - Example secrets template
 
 ## Next Steps
 
