@@ -1,0 +1,30 @@
+---
+- name: Install QEMU Guest Agent on Ubuntu VMs
+  hosts: proxmox_vms
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install QEMU guest agent
+      apt:
+        name: qemu-guest-agent
+        state: present
+
+    - name: Enable and start qemu-guest-agent service
+      systemd:
+        name: qemu-guest-agent
+        enabled: yes
+        state: started
+
+    - name: Verify qemu-guest-agent is running
+      systemd:
+        name: qemu-guest-agent
+        state: started
+      register: agent_status
+
+    - name: Display agent status
+      debug:
+        msg: "QEMU Guest Agent is {{ agent_status.status.ActiveState }}"
