@@ -1,0 +1,35 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+# Proxmox API credentials
+# Create an API token in Proxmox: Datacenter -> Permissions -> API Tokens
+proxmox_api_token_id     = "root@pam!terraform"
+proxmox_api_token_secret = "your-secret-token-here"
+
+# VM Configuration
+vm_name       = "ubuntu-vm-01"
+vm_cores      = 2
+vm_memory     = 2048
+vm_disk_size  = "20G"
+
+# Network Configuration
+# Use "dhcp" for DHCP or specify static IP like "192.168.10.100/24"
+vm_ip_address = "dhcp"
+vm_gateway    = "192.168.10.1"
+
+# SSH Keys
+# Add your public SSH key here for passwordless access
+ssh_keys = <<-EOT
+ssh-rsa AAAAB3Nza... your-key-here
+EOT
+
+# Storage
+# Common values: "local-lvm", "local", or your custom storage name
+vm_storage = "local-lvm"
+
+# Network
+# Default is usually "vmbr0"
+vm_network_bridge = "vmbr0"
+
+# Template
+# This should match the name of your Ubuntu cloud-init template in Proxmox
+template_name = "ubuntu-2404-cloudinit-template"
