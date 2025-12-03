@@ -3,5 +3,7 @@ ansible = "latest"
 python = "latest"
 terraform = "latest"
 
+[tasks.tfplan]
+run = "terraform plan -var-file='secrets.tfvars'"
 [tasks.tfapply]
 run = "terraform apply -var-file='secrets.tfvars'"
