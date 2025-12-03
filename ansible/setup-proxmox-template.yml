@@ -1,0 +1,119 @@
+---
+- name: Create Ubuntu 24.04 Template with QEMU Guest Agent on Proxmox
+  hosts: proxmox_hosts
+  gather_facts: no
+  vars:
+    template_id: 9000
+    template_name: "ubuntu-2404-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    cloud_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Download Ubuntu 24.04 cloud image
+      get_url:
+        url: "{{ cloud_image_url }}"
+        dest: /tmp/noble-server-cloudimg-amd64.img
+        mode: '0644'
+        timeout: 300
+      when: vm_exists.rc != 0
+
+    - name: Create base VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      register: create_result
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/noble-server-cloudimg-amd64.img
+        {{ storage }}
+      register: import_result
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot c
+        --bootdisk scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded image
+      file:
+        path: /tmp/noble-server-cloudimg-amd64.img
+        state: absent
+      when: vm_exists.rc != 0
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Template {{ template_id }} created successfully!"
+          - "============================================"
+          - ""
+          - "Template includes:"
+          - "  ✓ Ubuntu 24.04 LTS"
+          - "  ✓ Cloud-init enabled"
+          - "  ✓ Serial console"
+          - "  ✓ Snippets storage configured"
+          - ""
+          - "Ready to use with Terraform!"
+          - "Terraform will auto-install QEMU guest agent via cloud-init"

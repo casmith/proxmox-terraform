@@ -44,6 +44,12 @@ variable "proxmox_node" {
   default     = "pve"
 }
 
+variable "proxmox_ssh_user" {
+  description = "SSH username for Proxmox host (for uploading files)"
+  type        = string
+  default     = "root"
+}
+
 variable "vm_name" {
   description = "Name of the VM"
   type        = string
@@ -84,6 +90,12 @@ variable "vm_storage" {
   description = "Storage location for VM disk"
   type        = string
   default     = "local-lvm"
+}
+
+variable "snippets_storage" {
+  description = "Storage location for cloud-init snippets (must support 'snippets' content type)"
+  type        = string
+  default     = "local"
 }
 
 variable "vm_network_bridge" {

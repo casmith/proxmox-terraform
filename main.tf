@@ -31,6 +31,8 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   }
 
   initialization {
+    datastore_id = var.vm_storage
+
     user_account {
       username = var.vm_user
       keys     = length(trimspace(var.ssh_keys)) > 0 ? [trimspace(var.ssh_keys)] : []
@@ -42,5 +44,26 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
         gateway = var.vm_ip_address == "dhcp" ? null : var.vm_gateway
       }
     }
+
+    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data.id
+  }
+}
+
+resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
+  content_type = "snippets"
+  datastore_id = "local"
+  node_name    = var.proxmox_node
+
+  source_raw {
+    data = <<-EOF
+    #cloud-config
+    packages:
+      - qemu-guest-agent
+    runcmd:
+      - systemctl start qemu-guest-agent
+      - systemctl enable qemu-guest-agent
+    EOF
+
+    file_name = "cloud-init-${var.vm_name}.yaml"
   }
 }
