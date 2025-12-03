@@ -1,24 +1,30 @@
-output "vm_ids" {
-  description = "The IDs of the VMs"
-  value       = proxmox_virtual_environment_vm.ubuntu_vm[*].vm_id
+# Ubuntu VMs Outputs
+output "ubuntu_vm_details" {
+  description = "Detailed information about Ubuntu VMs"
+  value       = try(module.ubuntu_vms[0].vm_details, {})
 }
 
-output "vm_names" {
-  description = "The names of the VMs"
-  value       = proxmox_virtual_environment_vm.ubuntu_vm[*].name
+output "ubuntu_vm_ips" {
+  description = "IP addresses of Ubuntu VMs"
+  value       = try(module.ubuntu_vms[0].vm_ips, [])
 }
 
-output "vm_ips" {
-  description = "The IP addresses of the VMs"
-  value       = [for vm in proxmox_virtual_environment_vm.ubuntu_vm : try(vm.ipv4_addresses[1][0], "Waiting for IP...")]
+# Talos VMs Outputs
+output "talos_vm_details" {
+  description = "Detailed information about Talos VMs"
+  value       = try(module.talos_vms[0].vm_details, {})
 }
 
-output "vm_details" {
-  description = "Detailed information about all VMs"
+output "talos_vm_ips" {
+  description = "IP addresses of Talos VMs"
+  value       = try(module.talos_vms[0].vm_ips, [])
+}
+
+# Combined outputs
+output "all_vms" {
+  description = "All VM details grouped by type"
   value = {
-    for idx, vm in proxmox_virtual_environment_vm.ubuntu_vm : vm.name => {
-      id = vm.vm_id
-      ip = try(vm.ipv4_addresses[1][0], "Waiting for IP...")
-    }
+    ubuntu = try(module.ubuntu_vms[0].vm_details, {})
+    talos  = try(module.talos_vms[0].vm_details, {})
   }
 }

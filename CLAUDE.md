@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository manages Ubuntu 24.04 VMs on Proxmox using Terraform for infrastructure provisioning and Ansible for configuration management. The workflow follows a two-phase approach: Terraform creates VMs from cloud-init templates, then Ansible configures them.
+This repository manages multiple types of VMs on Proxmox using Terraform for infrastructure provisioning and Ansible for configuration management. The architecture is modular, allowing easy addition of new VM types (Ubuntu, Talos Linux, Windows, etc.).
 
 ## Tool Management
 
@@ -15,7 +15,7 @@ All development tools (Terraform, Ansible, Python) are managed via `mise`. Alway
 ### Terraform Operations
 
 ```bash
-# Initialize Terraform
+# Initialize Terraform (required after cloning or adding modules)
 mise exec -- terraform init
 
 # Validate configuration
@@ -31,93 +31,195 @@ mise exec -- terraform apply -var-file="secrets.tfvars"
 mise exec -- terraform destroy -var-file="secrets.tfvars"
 
 # Format Terraform files
-mise exec -- terraform fmt
+mise exec -- terraform fmt -recursive
 ```
 
-**Critical**: Always include `-var-file="secrets.tfvars"` when running plan/apply/destroy commands. The project separates secrets from configuration.
+**Critical**: Always include `-var-file="secrets.tfvars"` when running plan/apply/destroy commands.
 
 ### Ansible Operations
 
 ```bash
-# Test connectivity to VMs
-ansible proxmox_vms -m ping
-
-# Install QEMU guest agent on VMs
-ansible-playbook ansible/install-qemu-agent.yml
-
-# Create Proxmox template (runs on Proxmox host)
+# Create Ubuntu 24.04 template
 ansible-playbook ansible/setup-proxmox-template.yml
 
-# Run ad-hoc commands
-ansible proxmox_vms -a "uptime"
-ansible proxmox_vms -m apt -a "upgrade=dist update_cache=yes" -b
+# Create Talos Linux template
+ansible-playbook ansible/setup-talos-template.yml
+
+# Install QEMU guest agent on existing VMs (if needed)
+ansible-playbook ansible/install-qemu-agent.yml
+
+# Test connectivity
+ansible proxmox_vms -m ping
+```
+
+### View Outputs
+
+```bash
+# All VMs grouped by type
+terraform output all_vms
+
+# Ubuntu VMs only
+terraform output ubuntu_vm_details
+terraform output ubuntu_vm_ips
+
+# Talos VMs only
+terraform output talos_vm_details
+terraform output talos_vm_ips
 ```
 
 ## Architecture
 
+### Modular Structure
+
+The project uses a **module-based architecture** for scalability:
+
+```
+.
+├── modules/
+│   └── proxmox-vm/          # Reusable VM module
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+├── vms-ubuntu.tf            # Ubuntu VM instances
+├── vms-talos.tf             # Talos Linux VM instances
+├── variables.tf             # All variable definitions
+├── outputs.tf               # All outputs
+├── versions.tf              # Provider configuration
+└── ansible/
+    ├── setup-proxmox-template.yml   # Ubuntu template
+    └── setup-talos-template.yml     # Talos template
+```
+
+### Adding New VM Types
+
+To add a new VM type (e.g., Windows, FreeBSD, OpenMediaVault):
+
+1. **Create Ansible playbook**: `ansible/setup-{type}-template.yml`
+   - Downloads OS image
+   - Creates Proxmox template with unique ID
+   - Configures cloud-init (if supported)
+
+2. **Add variables**: In `variables.tf`, add:
+   ```hcl
+   variable "{type}_vm_count" { ... }
+   variable "{type}_vm_name" { ... }
+   variable "{type}_template_id" { ... }
+   # etc.
+   ```
+
+3. **Create VM configuration**: `vms-{type}.tf`
+   ```hcl
+   module "{type}_vms" {
+     source = "./modules/proxmox-vm"
+     count  = var.{type}_vm_count > 0 ? 1 : 0
+     # ... configuration
+   }
+   ```
+
+4. **Add outputs**: In `outputs.tf`
+   ```hcl
+   output "{type}_vm_details" {
+     value = try(module.{type}_vms[0].vm_details, {})
+   }
+   ```
+
 ### Two-File Variable System
 
-The project uses a security-conscious variable configuration:
+Security-conscious variable configuration:
 
-1. **secrets.tfvars** (gitignored): Contains sensitive data
+1. **secrets.tfvars** (gitignored): Sensitive data
    - Proxmox API token ID and secret
    - SSH public keys
    - Never committed to version control
 
-2. **terraform.tfvars** (safe to commit): Contains non-sensitive VM configuration
-   - VM name, CPU, memory, disk size
+2. **terraform.tfvars** (safe to commit): Non-sensitive configuration
+   - VM counts, names, sizes
    - Network settings
-   - Storage and template references
+   - Template references
 
-### Terraform Structure
+### VM Module Features
 
-- **versions.tf**: Provider configuration (bpg/proxmox ~> 0.70)
-- **variables.tf**: All variable definitions with defaults and descriptions
-- **main.tf**: Single `proxmox_virtual_environment_vm` resource with cloud-init
-- **outputs.tf**: Exports vm_id, vm_name, and vm_ip (via ipv4_addresses[1][0])
+The `modules/proxmox-vm` module supports:
 
-### VM Creation Flow
+- **Flexible cloud-init**: Automatic package installation, user creation, SSH keys
+- **Custom configuration**: Override cloud-init entirely for special cases
+- **QEMU agent**: Automatic IP detection when enabled
+- **Multiple instances**: Use `vm_count` to create multiple VMs with auto-numbered names
+- **Template cloning**: Clone from any Proxmox template ID
 
-1. Terraform clones from template (var.template_id, default 9000)
-2. Cloud-init configures:
-   - User account (var.vm_user, default "ubuntu")
-   - SSH keys from secrets.tfvars
-   - Network (DHCP or static based on var.vm_ip_address)
-3. QEMU agent enabled but not pre-installed in template
-4. Ansible installs agent and additional software post-creation
+### Template Requirements
 
-### Ansible Configuration
+Templates must be created before running Terraform:
+- **Ubuntu**: Template ID 9000 (via `setup-proxmox-template.yml`)
+- **Talos**: Template ID 9001 (via `setup-talos-template.yml`)
+- Must have cloud-init enabled and QEMU agent configured
 
-- **setup-proxmox-template.yml**: Creates Ubuntu 24.04 cloud-init template on Proxmox host
-  - Downloads noble cloud image
-  - Configures VM with cloud-init, serial console, QEMU agent enabled
-  - Converts to template (ID 9000 by default)
+### Provider Authentication
 
-- **install-qemu-agent.yml**: Installs qemu-guest-agent on running VMs
-  - Runs on `proxmox_vms` inventory group
-  - Uses apt to install and systemd to enable
+- **API**: Uses token-based auth (format: `user@realm!tokenname=secret`)
+- **SSH**: Used for uploading cloud-init snippets to Proxmox host
+  - Requires SSH access to Proxmox as configured user (default: root)
+  - Uses local SSH agent for key management
 
-### IP Address Resolution
+### Cloud-Init Integration
 
-Terraform outputs VM IP via `ipv4_addresses[1][0]` which requires QEMU guest agent. If agent isn't installed, this will show "Waiting for IP...". Use Ansible to install the agent, or check Proxmox console for IP.
+The module generates cloud-init user-data that:
+1. Creates user with SSH keys
+2. Installs packages (qemu-guest-agent by default)
+3. Runs custom commands
+4. Stored as snippets in Proxmox `local` storage
+
+## VM Configuration Examples
+
+### Ubuntu VMs
+```hcl
+ubuntu_vm_count     = 2
+ubuntu_vm_name      = "ubuntu-vm"
+ubuntu_vm_cores     = 2
+ubuntu_vm_memory    = 2048
+ubuntu_vm_disk_size = 20
+```
+Creates: `ubuntu-vm-01`, `ubuntu-vm-02`
+
+### Talos Linux VMs (Kubernetes)
+```hcl
+talos_vm_count     = 3
+talos_vm_name      = "talos-k8s"
+talos_vm_cores     = 4
+talos_vm_memory    = 4096
+talos_vm_disk_size = 50
+```
+Creates: `talos-k8s-01`, `talos-k8s-02`, `talos-k8s-03`
+
+### Disable a VM Type
+```hcl
+ubuntu_vm_count = 0  # No Ubuntu VMs will be created
+```
+
+## IP Address Resolution
+
+Terraform outputs VM IPs via QEMU guest agent (`ipv4_addresses[1][0]`). The agent is installed automatically via cloud-init on first boot. If "Waiting for IP..." appears:
+- Wait 30-90 seconds for cloud-init to complete
+- Check cloud-init status in VM console: `cloud-init status`
+- Verify QEMU agent is running: `systemctl status qemu-guest-agent`
 
 ## Important Notes
 
-### Proxmox Template Requirements
+### Snippets Storage
 
-The Ubuntu cloud-init template (default ID 9000) must exist before running Terraform:
-- Created via `ansible/setup-proxmox-template.yml` playbook
-- Or manually using commands in README.md
-- Must have cloud-init enabled and QEMU agent configured (enabled=1)
-
-### API Authentication
-
-Provider uses token-based auth (not username/password):
+The `local` storage must support snippets. The Ansible playbooks automatically enable this:
+```bash
+pvesm set local --content vztmpl,iso,backup,snippets
 ```
-api_token = "${var.proxmox_api_token_id}=${var.proxmox_api_token_secret}"
+
+### Module Count Pattern
+
+Modules use `count = var.{type}_vm_count > 0 ? 1 : 0` to conditionally create resources. This prevents empty module instances when VM count is 0.
+
+### State Management
+
+After restructuring to modules, you may need to migrate existing state:
+```bash
+# Import existing VMs if needed
+terraform import 'module.ubuntu_vms[0].proxmox_virtual_environment_vm.vm[0]' <vm-id>
 ```
-Format: `user@realm!tokenname=secret`
-
-### Helper Scripts
-
-Multiple shell scripts exist for template management and VM operations (cleanup-proxmox.sh, get-vm-ip.sh, etc.). These are convenience wrappers around qm commands and Ansible playbooks.

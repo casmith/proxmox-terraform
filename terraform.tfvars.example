@@ -1,35 +1,28 @@
-# Copy this file to terraform.tfvars and fill in your values
+# Proxmox Configuration
+# Note: API credentials should be in secrets.tfvars (not committed to git)
 
-# Proxmox API credentials
-# Create an API token in Proxmox: Datacenter -> Permissions -> API Tokens
-proxmox_api_token_id     = "root@pam!terraform"
-proxmox_api_token_secret = "your-secret-token-here"
-
-# VM Configuration
-vm_name       = "ubuntu-vm-01"
-vm_cores      = 2
-vm_memory     = 2048
-vm_disk_size  = "20G"
-
-# Network Configuration
-# Use "dhcp" for DHCP or specify static IP like "192.168.10.100/24"
-vm_ip_address = "dhcp"
-vm_gateway    = "192.168.10.1"
-
-# SSH Keys
-# Add your public SSH key here for passwordless access
-ssh_keys = <<-EOT
-ssh-rsa AAAAB3Nza... your-key-here
-EOT
-
-# Storage
-# Common values: "local-lvm", "local", or your custom storage name
-vm_storage = "local-lvm"
-
-# Network
-# Default is usually "vmbr0"
+# Shared VM Configuration
+vm_storage        = "local-lvm"
 vm_network_bridge = "vmbr0"
+vm_ip_address     = "dhcp"
+vm_gateway        = "192.168.10.1"
 
-# Template
-# This should match the name of your Ubuntu cloud-init template in Proxmox
-template_name = "ubuntu-2404-cloudinit-template"
+# Ubuntu VMs
+ubuntu_vm_count     = 2
+ubuntu_vm_name      = "ubuntu-vm"
+ubuntu_vm_cores     = 2
+ubuntu_vm_memory    = 2048
+ubuntu_vm_disk_size = 20
+
+# Talos Linux VMs (Kubernetes nodes)
+talos_vm_count     = 0  # Set to 3+ for a Kubernetes cluster
+talos_vm_name      = "talos-k8s"
+talos_vm_cores     = 2
+talos_vm_memory    = 4096
+talos_vm_disk_size = 30
+
+# To add more VM types in the future:
+# 1. Create ansible/setup-{type}-template.yml
+# 2. Create vms-{type}.tf
+# 3. Add variables in variables.tf
+# 4. Add outputs in outputs.tf

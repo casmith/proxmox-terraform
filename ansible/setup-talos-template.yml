@@ -1,0 +1,129 @@
+---
+- name: Create Talos Linux Template on Proxmox
+  hosts: proxmox_hosts
+  gather_facts: no
+  vars:
+    template_id: 9001
+    template_name: "talos-linux-template"
+    storage: "local-lvm"
+    memory: 4096
+    cores: 2
+    bridge: "vmbr0"
+    # Talos cloud image URL with QEMU guest agent extension
+    # Use Image Factory with qemu-guest-agent system extension
+    talos_version: "v1.7.6"
+    # Schematic ID: ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515 (includes siderolabs/qemu-guest-agent)
+    talos_image_url: "https://factory.talos.dev/image/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515/{{ talos_version }}/nocloud-amd64.raw.xz"
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Download Talos Linux cloud image
+      get_url:
+        url: "{{ talos_image_url }}"
+        dest: /tmp/talos-nocloud-amd64.raw.xz
+        mode: '0644'
+        timeout: 600
+      when: vm_exists.rc != 0
+
+    - name: Extract Talos image
+      command: xz -d /tmp/talos-nocloud-amd64.raw.xz
+      args:
+        creates: /tmp/talos-nocloud-amd64.raw
+      when: vm_exists.rc != 0
+
+    - name: Create base VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/talos-nocloud-amd64.raw
+        {{ storage }}
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot order=scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded images
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/talos-nocloud-amd64.raw.xz
+        - /tmp/talos-nocloud-amd64.raw
+      when: vm_exists.rc != 0
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Talos Template {{ template_id }} created successfully!"
+          - "============================================"
+          - ""
+          - "Template includes:"
+          - "  ✓ Talos Linux {{ talos_version }}"
+          - "  ✓ Cloud-init enabled"
+          - "  ✓ Serial console"
+          - "  ✓ QEMU agent enabled"
+          - ""
+          - "Ready to use with Terraform!"
+          - "Note: Talos uses its own configuration system"
