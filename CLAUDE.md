@@ -45,6 +45,9 @@ ansible-playbook ansible/setup-proxmox-template.yml
 # Create Talos Linux template
 ansible-playbook ansible/setup-talos-template.yml
 
+# Create Windows 11 template (requires manual steps - see WINDOWS_SETUP_GUIDE.md)
+ansible-playbook ansible/setup-windows-template.yml
+
 # Install QEMU guest agent on existing VMs (if needed)
 ansible-playbook ansible/install-qemu-agent.yml
 
@@ -65,61 +68,88 @@ terraform output ubuntu_vm_ips
 # Talos VMs only
 terraform output talos_vm_details
 terraform output talos_vm_ips
+
+# Windows VMs only (when enabled)
+terraform output windows_vm_details
+terraform output windows_vm_ips
 ```
 
 ## Architecture
 
-### Modular Structure
+### Modular Directory Structure
 
-The project uses a **module-based architecture** for scalability:
+The project uses a **directory-based module architecture** for scalability. Each OS type has its own directory containing all its configuration:
 
 ```
 .
+├── main.tf                  # Root - orchestrates all OS modules
+├── variables.tf             # Shared variables + OS-specific pass-throughs
+├── outputs.tf               # Combined outputs from all OS modules
+├── versions.tf              # Provider configuration
 ├── modules/
-│   └── proxmox-vm/          # Reusable VM module
+│   └── proxmox-vm/          # Reusable base VM module
 │       ├── main.tf
 │       ├── variables.tf
 │       └── outputs.tf
-├── vms-ubuntu.tf            # Ubuntu VM instances
-├── vms-talos.tf             # Talos Linux VM instances
-├── variables.tf             # All variable definitions
-├── outputs.tf               # All outputs
-├── versions.tf              # Provider configuration
+├── ubuntu/                  # Ubuntu VM configuration
+│   ├── main.tf             # Ubuntu module definition
+│   ├── variables.tf        # Ubuntu-specific variables
+│   └── outputs.tf          # Ubuntu outputs
+├── talos/                   # Talos Linux VM configuration
+│   ├── main.tf             # Talos module definition
+│   ├── variables.tf        # Talos-specific variables
+│   └── outputs.tf          # Talos outputs
+├── windows/                 # Windows VM configuration (template)
+│   ├── main.tf             # Windows module definition
+│   ├── variables.tf        # Windows-specific variables
+│   └── outputs.tf          # Windows outputs
 └── ansible/
     ├── setup-proxmox-template.yml   # Ubuntu template
-    └── setup-talos-template.yml     # Talos template
+    ├── setup-talos-template.yml     # Talos template
+    ├── setup-windows-template.yml   # Windows 11 template
+    └── WINDOWS_SETUP_GUIDE.md       # Detailed Windows setup instructions
 ```
 
 ### Adding New VM Types
 
-To add a new VM type (e.g., Windows, FreeBSD, OpenMediaVault):
+To add a new VM type (e.g., FreeBSD, OpenMediaVault), follow the Windows template structure:
 
-1. **Create Ansible playbook**: `ansible/setup-{type}-template.yml`
+1. **Create OS directory**: `mkdir {type}/`
+
+2. **Create Ansible playbook**: `ansible/setup-{type}-template.yml`
    - Downloads OS image
    - Creates Proxmox template with unique ID
    - Configures cloud-init (if supported)
 
-2. **Add variables**: In `variables.tf`, add:
-   ```hcl
-   variable "{type}_vm_count" { ... }
-   variable "{type}_vm_name" { ... }
-   variable "{type}_template_id" { ... }
-   # etc.
-   ```
+3. **Create module files in `{type}/` directory**:
 
-3. **Create VM configuration**: `vms-{type}.tf`
+   **`{type}/main.tf`**:
    ```hcl
    module "{type}_vms" {
-     source = "./modules/proxmox-vm"
+     source = "../modules/proxmox-vm"
      count  = var.{type}_vm_count > 0 ? 1 : 0
      # ... configuration
    }
    ```
 
-4. **Add outputs**: In `outputs.tf`
+   **`{type}/variables.tf`**: Define OS-specific variables and shared variable inputs
+
+   **`{type}/outputs.tf`**: Define module outputs
+
+4. **Add to root `main.tf`**: Reference the new module
+   ```hcl
+   module "{type}" {
+     source = "./{type}"
+     # Pass shared and OS-specific variables
+   }
+   ```
+
+5. **Add variables to root `variables.tf`**: Define OS-specific variables for pass-through
+
+6. **Add outputs to root `outputs.tf`**:
    ```hcl
    output "{type}_vm_details" {
-     value = try(module.{type}_vms[0].vm_details, {})
+     value = module.{type}.vm_details
    }
    ```
 
@@ -152,6 +182,7 @@ The `modules/proxmox-vm` module supports:
 Templates must be created before running Terraform:
 - **Ubuntu**: Template ID 9000 (via `setup-proxmox-template.yml`)
 - **Talos**: Template ID 9001 (via `setup-talos-template.yml`)
+- **Windows**: Template ID 9002 (template creation to be implemented)
 - Must have cloud-init enabled and QEMU agent configured
 
 ### Provider Authentication
@@ -191,6 +222,16 @@ talos_vm_disk_size = 50
 ```
 Creates: `talos-k8s-01`, `talos-k8s-02`, `talos-k8s-03`
 
+### Windows VMs (Template)
+```hcl
+windows_vm_count     = 0  # Disabled by default (no template yet)
+windows_vm_name      = "windows-vm"
+windows_vm_cores     = 4
+windows_vm_memory    = 8192
+windows_vm_disk_size = 60
+```
+Creates: `windows-vm-01`, etc. (when template ID 9002 exists)
+
 ### Disable a VM Type
 ```hcl
 ubuntu_vm_count = 0  # No Ubuntu VMs will be created
@@ -214,12 +255,29 @@ pvesm set local --content vztmpl,iso,backup,snippets
 
 ### Module Count Pattern
 
-Modules use `count = var.{type}_vm_count > 0 ? 1 : 0` to conditionally create resources. This prevents empty module instances when VM count is 0.
+OS-specific modules in their directories use `count = var.{type}_vm_count > 0 ? 1 : 0` on the inner `proxmox-vm` module to conditionally create resources. This prevents empty module instances when VM count is 0.
 
 ### State Management
 
-After restructuring to modules, you may need to migrate existing state:
+The reorganization into OS-specific directories may require state migration. To migrate existing resources:
+
+```bash
+# List current state
+terraform state list
+
+# Move resources to new module paths
+# Example for Ubuntu VMs:
+terraform state mv 'module.ubuntu_vms[0]' 'module.ubuntu.ubuntu_vms[0]'
+
+# Example for Talos VMs:
+terraform state mv 'module.talos_vms[0]' 'module.talos.talos_vms[0]'
+
+# Verify with plan (should show no changes)
+terraform plan -var-file="secrets.tfvars"
+```
+
+If starting fresh or importing VMs:
 ```bash
 # Import existing VMs if needed
-terraform import 'module.ubuntu_vms[0].proxmox_virtual_environment_vm.vm[0]' <vm-id>
+terraform import 'module.ubuntu.ubuntu_vms[0].proxmox_virtual_environment_vm.vm[0]' <vm-id>
 ```

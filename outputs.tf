@@ -1,30 +1,42 @@
 # Ubuntu VMs Outputs
 output "ubuntu_vm_details" {
   description = "Detailed information about Ubuntu VMs"
-  value       = try(module.ubuntu_vms[0].vm_details, {})
+  value       = module.ubuntu.vm_details
 }
 
 output "ubuntu_vm_ips" {
   description = "IP addresses of Ubuntu VMs"
-  value       = try(module.ubuntu_vms[0].vm_ips, [])
+  value       = module.ubuntu.vm_ips
 }
 
 # Talos VMs Outputs
 output "talos_vm_details" {
   description = "Detailed information about Talos VMs"
-  value       = try(module.talos_vms[0].vm_details, {})
+  value       = module.talos.vm_details
 }
 
 output "talos_vm_ips" {
   description = "IP addresses of Talos VMs"
-  value       = try(module.talos_vms[0].vm_ips, [])
+  value       = module.talos.vm_ips
 }
 
-# Combined outputs
+# Windows VMs Outputs
+output "windows_vm_details" {
+  description = "Detailed information about Windows VMs"
+  value       = module.windows.vm_details
+}
+
+output "windows_vm_ips" {
+  description = "IP addresses of Windows VMs"
+  value       = module.windows.vm_ips
+}
+
+# Combined outputs - all VMs grouped by type
 output "all_vms" {
   description = "All VM details grouped by type"
   value = {
-    ubuntu = try(module.ubuntu_vms[0].vm_details, {})
-    talos  = try(module.talos_vms[0].vm_details, {})
+    ubuntu  = module.ubuntu.vm_details
+    talos   = module.talos.vm_details
+    windows = module.windows.vm_details
   }
 }

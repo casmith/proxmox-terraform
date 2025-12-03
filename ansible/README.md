@@ -1,6 +1,31 @@
 # Ansible Configuration for Proxmox VMs
 
-This directory contains Ansible playbooks for configuring VMs created with Terraform.
+This directory contains Ansible playbooks for creating Proxmox templates and configuring VMs created with Terraform.
+
+## Template Creation Playbooks
+
+### Ubuntu 24.04 Template
+```bash
+ansible-playbook setup-proxmox-template.yml
+```
+Creates template ID 9000 with cloud-init and QEMU agent support.
+
+### Talos Linux Template
+```bash
+ansible-playbook setup-talos-template.yml
+```
+Creates template ID 9001 with Kubernetes-optimized Talos Linux.
+
+### Windows 11 Template
+```bash
+ansible-playbook setup-windows-template.yml
+```
+Creates template ID 9002. **Note:** Requires manual steps for Windows installation.
+
+- **Quick Start:** See `WINDOWS_QUICK_START.md` for 5-step setup (~30 min)
+- **Detailed Guide:** See `WINDOWS_SETUP_GUIDE.md` for comprehensive instructions
+
+## VM Configuration Playbooks
 
 ## Setup
 

@@ -1,6 +1,6 @@
 # Talos Linux VMs Configuration
 module "talos_vms" {
-  source = "./modules/proxmox-vm"
+  source = "../modules/proxmox-vm"
 
   count = var.talos_vm_count > 0 ? 1 : 0
 

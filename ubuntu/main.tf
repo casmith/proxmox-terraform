@@ -1,6 +1,6 @@
 # Ubuntu VMs Configuration
 module "ubuntu_vms" {
-  source = "./modules/proxmox-vm"
+  source = "../modules/proxmox-vm"
 
   count = var.ubuntu_vm_count > 0 ? 1 : 0
 

@@ -1,0 +1,189 @@
+---
+- name: Create Windows 11 Template with cloudbase-init on Proxmox
+  hosts: proxmox_hosts
+  gather_facts: no
+  vars:
+    template_id: 9002
+    template_name: "windows-11-cloudinit-template"
+    storage: "local-lvm"
+    iso_storage: "local"
+    memory: 8192
+    cores: 4
+    bridge: "vmbr0"
+    # Windows 11 ISO - Update this URL or download manually
+    # Note: Microsoft doesn't provide direct download links, you may need to:
+    # 1. Download ISO from Microsoft: https://www.microsoft.com/software-download/windows11
+    # 2. Upload to Proxmox ISO storage manually
+    # 3. Update the iso_file variable below
+    iso_file: "Win11_25H2_English_x64.iso"  # Update this to your ISO filename
+    # VirtIO drivers ISO for Windows
+    virtio_iso_url: "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso"
+    virtio_iso_file: "virtio-win.iso"
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Check if Windows ISO exists
+      stat:
+        path: "/var/lib/vz/template/iso/{{ iso_file }}"
+      register: windows_iso
+      when: vm_exists.rc != 0
+
+    - name: Fail if Windows ISO not found
+      fail:
+        msg: |
+          Windows ISO not found at /var/lib/vz/template/iso/{{ iso_file }}
+
+          Please download Windows 11 ISO manually:
+          1. Visit https://www.microsoft.com/software-download/windows11
+          2. Download the ISO
+          3. Upload to Proxmox:
+             - Web UI: Datacenter → Storage (local) → ISO Images → Upload
+             - CLI: Copy to /var/lib/vz/template/iso/
+          4. Update the 'iso_file' variable in this playbook
+      when: vm_exists.rc != 0 and not windows_iso.stat.exists
+
+    - name: Download VirtIO drivers ISO
+      get_url:
+        url: "{{ virtio_iso_url }}"
+        dest: "/var/lib/vz/template/iso/{{ virtio_iso_file }}"
+        mode: '0644'
+        timeout: 600
+      when: vm_exists.rc != 0
+
+    - name: Create base VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+        --ostype win11
+      when: vm_exists.rc != 0
+
+    - name: Add Windows 11 ISO
+      command: >
+        qm set {{ template_id }}
+        --ide0 {{ iso_storage }}:iso/{{ iso_file }},media=cdrom
+      when: vm_exists.rc != 0
+
+    - name: Add VirtIO drivers ISO
+      command: >
+        qm set {{ template_id }}
+        --ide3 {{ iso_storage }}:iso/{{ virtio_iso_file }},media=cdrom
+      when: vm_exists.rc != 0
+
+    - name: Create and attach main disk (VirtIO SCSI)
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:60,format=raw
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot order
+      command: >
+        qm set {{ template_id }}
+        --boot order=ide0;scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable UEFI with TPM 2.0 (required for Windows 11)
+      command: >
+        qm set {{ template_id }}
+        --bios ovmf
+        --efidisk0 {{ storage }}:1,format=raw,efitype=4m,pre-enrolled-keys=1
+        --tpmstate0 {{ storage }}:1,version=v2.0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1,fstrim_cloned_disks=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add VGA adapter
+      command: >
+        qm set {{ template_id }}
+        --vga std
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable tablet pointer (better mouse control)
+      command: >
+        qm set {{ template_id }}
+        --tablet 1
+      when: vm_exists.rc != 0
+
+    - name: Display manual steps required
+      debug:
+        msg:
+          - "============================================"
+          - "Windows 11 VM {{ template_id }} created!"
+          - "============================================"
+          - ""
+          - "⚠️  MANUAL STEPS REQUIRED:"
+          - ""
+          - "1. Start the VM:"
+          - "   qm start {{ template_id }}"
+          - ""
+          - "2. Connect via Proxmox VNC console"
+          - ""
+          - "3. Install Windows 11:"
+          - "   - When asked 'Where to install', click 'Load driver'"
+          - "   - Browse to VirtIO CD → vioscsi → w11 → amd64"
+          - "   - Install Red Hat VirtIO SCSI controller driver"
+          - "   - Proceed with Windows installation"
+          - ""
+          - "4. After Windows boots, install VirtIO drivers:"
+          - "   - Open VirtIO CD"
+          - "   - Run virtio-win-guest-tools.exe"
+          - "   - This installs network, balloon, QEMU agent, etc."
+          - ""
+          - "5. Install cloudbase-init:"
+          - "   - Download: https://cloudbase.it/cloudbase-init"
+          - "   - Install with default settings"
+          - "   - When prompted, select 'Run Sysprep' and 'Shutdown'"
+          - ""
+          - "6. After VM shuts down, convert to template:"
+          - "   qm template {{ template_id }}"
+          - ""
+          - "7. Optional - Remove ISOs from template:"
+          - "   qm set {{ template_id }} --delete ide0"
+          - "   qm set {{ template_id }} --delete ide3"
+          - ""
+          - "Template includes:"
+          - "  ✓ Windows 11 with UEFI + TPM 2.0"
+          - "  ✓ VirtIO SCSI drivers"
+          - "  ✓ Cloud-init drive (for cloudbase-init)"
+          - "  ✓ QEMU agent ready"
+          - ""
+          - "After completing these steps, you can use it with Terraform!"
+      when: vm_exists.rc != 0
+
+    - name: Display existing template message
+      debug:
+        msg: "Template {{ template_id }} already exists and is ready to use!"
+      when: vm_exists.rc == 0

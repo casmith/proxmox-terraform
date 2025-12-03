@@ -1,4 +1,10 @@
+# Root Variables File
+# Contains shared Proxmox configuration and pass-through variables for OS-specific modules
+
+# ============================================================================
 # Proxmox Provider Configuration
+# ============================================================================
+
 variable "proxmox_api_url" {
   description = "Proxmox API URL"
   type        = string
@@ -37,7 +43,10 @@ variable "proxmox_ssh_user" {
   default     = "root"
 }
 
-# Shared VM Configuration
+# ============================================================================
+# Shared VM Configuration (used by all OS types)
+# ============================================================================
+
 variable "vm_storage" {
   description = "Storage location for VM disks"
   type        = string
@@ -66,9 +75,13 @@ variable "ssh_keys" {
   description = "SSH public keys to add to VMs"
   type        = string
   default     = ""
+  sensitive   = true
 }
 
+# ============================================================================
 # Ubuntu VM Configuration
+# ============================================================================
+
 variable "ubuntu_vm_count" {
   description = "Number of Ubuntu VMs to create"
   type        = number
@@ -117,7 +130,10 @@ variable "ubuntu_vm_user" {
   default     = "ubuntu"
 }
 
+# ============================================================================
 # Talos Linux VM Configuration
+# ============================================================================
+
 variable "talos_vm_count" {
   description = "Number of Talos Linux VMs to create"
   type        = number
@@ -158,4 +174,56 @@ variable "talos_vm_disk_size" {
   description = "Disk size in GB for Talos VMs"
   type        = number
   default     = 30
+}
+
+# ============================================================================
+# Windows VM Configuration
+# ============================================================================
+
+variable "windows_vm_count" {
+  description = "Number of Windows VMs to create"
+  type        = number
+  default     = 0
+}
+
+variable "windows_vm_name" {
+  description = "Base name for Windows VMs"
+  type        = string
+  default     = "windows-vm"
+}
+
+variable "windows_vm_tags" {
+  description = "Tags for Windows VMs (semicolon separated)"
+  type        = string
+  default     = "terraform;windows"
+}
+
+variable "windows_template_id" {
+  description = "ID of the Windows template to clone"
+  type        = number
+  default     = 9002
+}
+
+variable "windows_vm_cores" {
+  description = "Number of CPU cores for Windows VMs"
+  type        = number
+  default     = 4
+}
+
+variable "windows_vm_memory" {
+  description = "Memory in MB for Windows VMs"
+  type        = number
+  default     = 8192
+}
+
+variable "windows_vm_disk_size" {
+  description = "Disk size in GB for Windows VMs"
+  type        = number
+  default     = 60
+}
+
+variable "windows_vm_user" {
+  description = "Default user for Windows VMs"
+  type        = string
+  default     = "Administrator"
 }

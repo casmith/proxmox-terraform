@@ -7,3 +7,5 @@ terraform = "latest"
 run = "terraform plan -var-file='secrets.tfvars'"
 [tasks.tfapply]
 run = "terraform apply -var-file='secrets.tfvars'"
+[tasks.tfdestroy]
+run = "terraform destroy -var-file='secrets.tfvars'"
