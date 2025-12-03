@@ -2,6 +2,8 @@
 # This file can be safely committed to git
 # Secrets are in secrets.tfvars (gitignored)
 
+vm_count     = 2
+
 vm_name      = "ubuntu-vm-01"
 vm_cores     = 2
 vm_memory    = 2048

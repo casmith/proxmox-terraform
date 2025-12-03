@@ -51,9 +51,15 @@ variable "proxmox_ssh_user" {
 }
 
 variable "vm_name" {
-  description = "Name of the VM"
+  description = "Base name of the VM (will be appended with -01, -02, etc. if vm_count > 1)"
   type        = string
-  default     = "ubuntu-vm-01"
+  default     = "ubuntu-vm"
+}
+
+variable "vm_count" {
+  description = "Number of VMs to create"
+  type        = number
+  default     = 1
 }
 
 variable "vm_description" {

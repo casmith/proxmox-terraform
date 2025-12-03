@@ -1,5 +1,6 @@
 resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
-  name      = var.vm_name
+  count     = var.vm_count
+  name      = var.vm_count > 1 ? "${var.vm_name}-${format("%02d", count.index + 1)}" : var.vm_name
   node_name = var.proxmox_node
   tags      = split(";", var.vm_tags)
 
@@ -45,11 +46,12 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
       }
     }
 
-    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data.id
+    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data[count.index].id
   }
 }
 
 resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
+  count        = var.vm_count
   content_type = "snippets"
   datastore_id = "local"
   node_name    = var.proxmox_node
@@ -57,6 +59,13 @@ resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
   source_raw {
     data = <<-EOF
     #cloud-config
+    users:
+      - name: ${var.vm_user}
+        ssh_authorized_keys:
+          - ${trimspace(var.ssh_keys)}
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        groups: sudo
+        shell: /bin/bash
     packages:
       - qemu-guest-agent
     runcmd:
@@ -64,6 +73,6 @@ resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
       - systemctl enable qemu-guest-agent
     EOF
 
-    file_name = "cloud-init-${var.vm_name}.yaml"
+    file_name = var.vm_count > 1 ? "cloud-init-${var.vm_name}-${format("%02d", count.index + 1)}.yaml" : "cloud-init-${var.vm_name}.yaml"
   }
 }
