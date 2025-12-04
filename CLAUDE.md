@@ -48,7 +48,7 @@ ansible-playbook ansible/setup-talos-template.yml
 # Create Windows 11 template (requires manual steps - see WINDOWS_SETUP_GUIDE.md)
 ansible-playbook ansible/setup-windows-template.yml
 
-# Create FreeBSD 15.0 template
+# Create FreeBSD 15.0 template (requires manual steps - see FREEBSD_TEMPLATE_MANUAL_SETUP.md)
 ansible-playbook ansible/setup-freebsd-template.yml
 
 # Configure no-subscription repository (disables enterprise repo warning)
@@ -192,6 +192,8 @@ The `modules/proxmox-vm` module supports:
 - **Flexible cloud-init**: Automatic package installation, user creation, SSH keys
 - **Custom configuration**: Override cloud-init entirely for special cases
 - **QEMU agent**: Automatic IP detection when enabled
+- **Cross-platform support**: Works with Linux (systemd) and BSD (rc.d) systems
+  - Set `use_systemd_qemu_agent = false` for FreeBSD and other non-systemd OSes
 - **Multiple instances**: Use `vm_count` to create multiple VMs with auto-numbered names
 - **Template cloning**: Clone from any Proxmox template ID
 
@@ -201,7 +203,7 @@ Templates must be created before running Terraform:
 - **Ubuntu**: Template ID 9000 (via `setup-proxmox-template.yml`)
 - **Talos**: Template ID 9001 (via `setup-talos-template.yml`)
 - **Windows**: Template ID 9002 (via `setup-windows-template.yml` - requires manual steps)
-- **FreeBSD**: Template ID 9003 (via `setup-freebsd-template.yml`)
+- **FreeBSD**: Template ID 114 (requires manual setup - see `FREEBSD_TEMPLATE_MANUAL_SETUP.md`)
 - Must have cloud-init enabled and QEMU agent configured
 
 ### Provider Authentication

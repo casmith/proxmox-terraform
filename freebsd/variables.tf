@@ -21,7 +21,7 @@ variable "freebsd_vm_tags" {
 variable "freebsd_template_id" {
   description = "ID of the FreeBSD cloud-init template to clone"
   type        = number
-  default     = 9003
+  default     = 114
 }
 
 variable "freebsd_vm_cores" {

@@ -3,7 +3,7 @@
   hosts: proxmox_hosts
   gather_facts: no
   vars:
-    template_id: 9003
+    template_id: 114
     template_name: "freebsd-15-cloudinit-template"
     storage: "local-lvm"
     memory: 2048

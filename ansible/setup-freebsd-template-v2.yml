@@ -1,0 +1,217 @@
+---
+- name: Create FreeBSD 15.0 Template with Pre-installed Packages on Proxmox
+  hosts: proxmox_hosts
+  gather_facts: no
+  vars:
+    template_id: 114
+    template_name: "freebsd-15-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    freebsd_version: "15.0"
+    freebsd_release: "RELEASE"
+    cloud_image_url: "https://download.freebsd.org/releases/VM-IMAGES/{{ freebsd_version }}-{{ freebsd_release }}/amd64/Latest/FreeBSD-{{ freebsd_version }}-{{ freebsd_release }}-amd64-BASIC-CLOUDINIT-ufs.raw.xz"
+    # Temporary root password for initial setup (will be disabled after)
+    temp_root_password: "ChangeMe123!"
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Download FreeBSD cloud image
+      get_url:
+        url: "{{ cloud_image_url }}"
+        dest: /tmp/freebsd-{{ freebsd_version }}-cloud.raw.xz
+        mode: '0644'
+        timeout: 600
+      when: vm_exists.rc != 0
+
+    - name: Extract FreeBSD image
+      command: xz -d /tmp/freebsd-{{ freebsd_version }}-cloud.raw.xz
+      args:
+        creates: /tmp/freebsd-{{ freebsd_version }}-cloud.raw
+      when: vm_exists.rc != 0
+
+    - name: Create base VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+        --ostype other
+      register: create_result
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/freebsd-{{ freebsd_version }}-cloud.raw
+        {{ storage }}
+      register: import_result
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot order=scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Create initialization script for FreeBSD
+      copy:
+        dest: /tmp/freebsd-init.sh
+        content: |
+          #!/bin/sh
+          # Wait for network
+          sleep 10
+          # Install required packages
+          env ASSUME_ALWAYS_YES=YES pkg bootstrap
+          pkg install -y qemu-guest-agent py311-cloud-init sudo bash
+          # Enable services
+          sysrc sshd_enable="YES"
+          sysrc cloudinit_enable="YES"
+          sysrc qemu_guest_agent_enable="YES"
+          sysrc qemu_guest_agent_flags="-d -v -l /var/log/qemu-ga.log"
+          # Load virtio_console
+          echo 'virtio_console_load="YES"' >> /boot/loader.conf
+          kldload virtio_console
+          # Start services
+          service sshd start
+          service qemu-guest-agent start
+          # Signal completion
+          touch /root/init-complete
+          # Shutdown
+          shutdown -p now
+        mode: '0755'
+      when: vm_exists.rc != 0
+
+    - name: Create minimal cloud-init config for initial boot
+      copy:
+        dest: /var/lib/vz/snippets/freebsd-template-init.yml
+        content: |
+          #cloud-config
+          # Minimal config for FreeBSD BASIC-CLOUDINIT
+          # FreeBSD BASIC images use bsd-cloudinit which has limited functionality
+          chpasswd:
+            list: |
+              root:{{ temp_root_password }}
+            expire: False
+          runcmd:
+            - /bin/sh /tmp/freebsd-init.sh
+        mode: '0644'
+      when: vm_exists.rc != 0
+
+    - name: Copy init script into VM (via virt-customize if available, otherwise manual)
+      shell: |
+        # Try to inject the script into the image before first boot
+        # This may not work if virt-customize is not available
+        if command -v virt-customize >/dev/null 2>&1; then
+          virt-customize -a {{ storage_path }}/vm-{{ template_id }}-disk-0 \
+            --copy-in /tmp/freebsd-init.sh:/tmp/ || true
+        fi
+      when: vm_exists.rc != 0
+      ignore_errors: yes
+
+    - name: Set cloud-init user-data for template
+      command: >
+        qm set {{ template_id }}
+        --cicustom "user=local:snippets/freebsd-template-init.yml"
+      when: vm_exists.rc != 0
+
+    - name: Display manual setup instructions
+      debug:
+        msg:
+          - "============================================"
+          - "MANUAL SETUP REQUIRED FOR FREEBSD TEMPLATE"
+          - "============================================"
+          - ""
+          - "FreeBSD BASIC-CLOUDINIT images have limited cloud-init support."
+          - "You need to manually complete the setup:"
+          - ""
+          - "1. Start the template VM:"
+          - "   qm start {{ template_id }}"
+          - ""
+          - "2. Open the console in Proxmox web UI"
+          - ""
+          - "3. Log in as 'root' (may require console login)"
+          - ""
+          - "4. Run these commands:"
+          - "   env ASSUME_ALWAYS_YES=YES pkg bootstrap"
+          - "   pkg install -y qemu-guest-agent py311-cloud-init sudo bash"
+          - "   sysrc sshd_enable=\"YES\""
+          - "   sysrc cloudinit_enable=\"YES\""
+          - "   sysrc qemu_guest_agent_enable=\"YES\""
+          - "   echo 'virtio_console_load=\"YES\"' >> /boot/loader.conf"
+          - "   kldload virtio_console"
+          - "   service sshd start"
+          - "   service qemu-guest-agent start"
+          - ""
+          - "5. Verify services are running:"
+          - "   service sshd status"
+          - "   service qemu-guest-agent status"
+          - ""
+          - "6. Shutdown the VM:"
+          - "   shutdown -p now"
+          - ""
+          - "7. Convert to template:"
+          - "   qm template {{ template_id }}"
+          - ""
+          - "8. Clean up:"
+          - "   qm set {{ template_id }} --delete cicustom"
+          - ""
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded images
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/freebsd-{{ freebsd_version }}-cloud.raw.xz
+        - /tmp/freebsd-{{ freebsd_version }}-cloud.raw
+        - /tmp/freebsd-init.sh
+      when: vm_exists.rc != 0

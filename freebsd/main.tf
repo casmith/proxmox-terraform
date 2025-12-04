@@ -24,18 +24,37 @@ module "freebsd_vms" {
   ssh_keys = var.ssh_keys
 
   # QEMU agent is pre-installed in the template
-  # Ensure virtio_console is loaded and agent is enabled
   enable_qemu_agent = true
 
-  # No additional packages needed (already in template)
-  cloud_init_packages = []
+  # FreeBSD doesn't use systemd, so disable systemctl commands
+  use_systemd_qemu_agent = false
 
-  # Ensure virtio_console kernel module and QEMU agent service are configured
-  cloud_init_runcmd = [
-    "echo 'virtio_console_load=\"YES\"' >> /boot/loader.conf",
-    "kldload virtio_console || true",
-    "sysrc qemu_guest_agent_enable=\"YES\"",
-    "sysrc qemu_guest_agent_flags=\"-d -v -l /var/log/qemu-ga.log\"",
-    "service qemu-guest-agent restart || service qemu-guest-agent start"
-  ]
+  # Use custom cloud-init for FreeBSD-specific configuration
+  custom_cloud_init = <<-EOF
+  #cloud-config
+  users:
+    - name: ${var.freebsd_vm_user}
+      ssh_authorized_keys:
+        - ${trimspace(var.ssh_keys)}
+      groups: wheel
+      shell: /bin/sh
+      sudo: ALL=(ALL) NOPASSWD:ALL
+
+  # FreeBSD-specific configuration
+  runcmd:
+    # Enable and start SSH server (critical for access)
+    - sysrc sshd_enable="YES"
+    - service sshd start
+    # Configure virtio console for QEMU agent communication
+    - echo 'virtio_console_load="YES"' >> /boot/loader.conf
+    - kldload virtio_console || true
+    # Enable and start QEMU guest agent
+    - sysrc qemu_guest_agent_enable="YES"
+    - sysrc qemu_guest_agent_flags="-d -v -l /var/log/qemu-ga.log"
+    - service qemu-guest-agent restart || service qemu-guest-agent start
+  EOF
+
+  # Not used when custom_cloud_init is set, but kept for clarity
+  cloud_init_packages = []
+  cloud_init_runcmd   = []
 }

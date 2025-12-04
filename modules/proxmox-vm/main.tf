@@ -13,7 +13,7 @@ locals {
     - ${pkg}
 %{endfor~}
   runcmd:
-%{if var.enable_qemu_agent~}
+%{if var.enable_qemu_agent && var.use_systemd_qemu_agent~}
     - systemctl start qemu-guest-agent
     - systemctl enable qemu-guest-agent
 %{endif~}

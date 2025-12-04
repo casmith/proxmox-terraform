@@ -97,6 +97,12 @@ variable "enable_qemu_agent" {
   default     = true
 }
 
+variable "use_systemd_qemu_agent" {
+  description = "Use systemd commands to start QEMU agent (set to false for FreeBSD/non-systemd OSes)"
+  type        = bool
+  default     = true
+}
+
 variable "custom_cloud_init" {
   description = "Custom cloud-init configuration (overrides default)"
   type        = string
