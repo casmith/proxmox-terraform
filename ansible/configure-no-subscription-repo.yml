@@ -1,0 +1,163 @@
+---
+- name: Configure Proxmox No-Subscription Repository
+  hosts: proxmox_hosts
+  gather_facts: yes
+  vars:
+    # Detect Proxmox/Debian version automatically
+    proxmox_suite: "{{ 'trixie' if ansible_distribution_major_version == '13' else 'bookworm' if ansible_distribution_major_version == '12' else 'bullseye' }}"
+    use_modern_format: "{{ ansible_distribution_major_version | int >= 12 }}"
+
+  tasks:
+    - name: Display detected Debian version
+      debug:
+        msg: "Detected Debian {{ ansible_distribution_major_version }} ({{ proxmox_suite }}), using {{ 'modern .sources' if use_modern_format else 'legacy .list' }} format"
+
+    # Modern format (.sources) for Debian 12+ / Proxmox VE 8+
+    - name: Disable enterprise repository (modern format)
+      lineinfile:
+        path: /etc/apt/sources.list.d/pve-enterprise.sources
+        line: 'Enabled: no'
+        insertafter: '^Components:'
+        state: present
+        create: no
+      when: use_modern_format
+      register: enterprise_disabled_modern
+
+    - name: Enable no-subscription repository (modern format)
+      copy:
+        dest: /etc/apt/sources.list.d/pve-no-subscription.sources
+        content: |
+          Types: deb
+          URIs: http://download.proxmox.com/debian/pve
+          Suites: {{ proxmox_suite }}
+          Components: pve-no-subscription
+          Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+        owner: root
+        group: root
+        mode: '0644'
+      when: use_modern_format
+      register: nosub_enabled_modern
+
+    # Legacy format (.list) for older Proxmox versions
+    - name: Disable enterprise repository (legacy format)
+      replace:
+        path: /etc/apt/sources.list.d/pve-enterprise.list
+        regexp: '^(deb.*)$'
+        replace: '# \1'
+      when: not use_modern_format
+      register: enterprise_disabled_legacy
+
+    - name: Enable no-subscription repository (legacy format)
+      lineinfile:
+        path: /etc/apt/sources.list.d/pve-no-subscription.list
+        line: 'deb http://download.proxmox.com/debian/pve {{ proxmox_suite }} pve-no-subscription'
+        create: yes
+        owner: root
+        group: root
+        mode: '0644'
+      when: not use_modern_format
+      register: nosub_enabled_legacy
+
+    # Disable Ceph enterprise repository if it exists (optional, but common)
+    - name: Check if Ceph enterprise repository exists
+      stat:
+        path: /etc/apt/sources.list.d/ceph.list
+      register: ceph_repo_stat
+
+    - name: Disable Ceph enterprise repository (legacy format)
+      replace:
+        path: /etc/apt/sources.list.d/ceph.list
+        regexp: '^(deb.*)$'
+        replace: '# \1'
+      when: ceph_repo_stat.stat.exists and not use_modern_format
+      register: ceph_disabled_legacy
+
+    - name: Check if Ceph enterprise repository exists (modern format)
+      stat:
+        path: /etc/apt/sources.list.d/ceph.sources
+      register: ceph_repo_modern_stat
+
+    - name: Disable Ceph enterprise repository (modern format)
+      lineinfile:
+        path: /etc/apt/sources.list.d/ceph.sources
+        line: 'Enabled: no'
+        insertafter: '^Components:'
+        state: present
+      when: ceph_repo_modern_stat.stat.exists and use_modern_format
+      register: ceph_disabled_modern
+
+    # Update package lists
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      when: >
+        enterprise_disabled_modern.changed or nosub_enabled_modern.changed or
+        enterprise_disabled_legacy.changed or nosub_enabled_legacy.changed or
+        ceph_disabled_legacy.changed or ceph_disabled_modern.changed
+
+    # Disable subscription popup warning in web UI
+    - name: Check if proxmoxlib.js exists
+      stat:
+        path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+      register: proxmoxlib_stat
+
+    - name: Backup proxmoxlib.js before modification
+      copy:
+        src: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+        dest: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak
+        remote_src: yes
+        force: no
+      when: proxmoxlib_stat.stat.exists
+
+    - name: Check if popup is already disabled
+      shell: grep -q "orig_cmd();" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+      register: popup_check
+      failed_when: false
+      changed_when: false
+      when: proxmoxlib_stat.stat.exists
+
+    - name: Disable subscription popup in web UI (method 1 - inject early return)
+      shell: |
+        sed -Ezi.orig "s/(function\(orig_cmd\)\s?\{)/\1\n\torig_cmd\(\);\n\treturn;/g" \
+        /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+      when:
+        - proxmoxlib_stat.stat.exists
+        - popup_check.rc != 0
+      register: popup_disabled
+
+    - name: Restart pveproxy service to apply popup changes
+      systemd:
+        name: pveproxy
+        state: restarted
+      when: popup_disabled.changed
+
+    - name: Clear browser cache notice
+      debug:
+        msg:
+          - "IMPORTANT: Clear your browser cache and do a hard refresh (Ctrl+Shift+R or Cmd+Shift+R)"
+          - "If popup persists, try accessing the web UI in a private/incognito window"
+      when: popup_disabled.changed
+
+    # Display success message
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Proxmox repository configuration updated!"
+          - "============================================"
+          - ""
+          - "Changes made:"
+          - "  ✓ Enterprise repository disabled"
+          - "  ✓ No-subscription repository enabled"
+          - "  ✓ Using {{ proxmox_suite }} suite"
+          - "  ✓ APT cache updated"
+          - "  ✓ Web UI subscription popup disabled"
+          - ""
+          - "You can now:"
+          - "  - Run 'apt update && apt upgrade' without warnings"
+          - "  - Log into the web UI without popup warnings"
+          - ""
+          - "IMPORTANT NOTES:"
+          - "  - Updates may reset the popup fix - re-run this playbook after updates"
+          - "  - This configuration is not recommended for production use"
+          - "  - Consider supporting Proxmox with a subscription if you use it professionally"

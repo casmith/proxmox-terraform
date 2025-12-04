@@ -51,6 +51,12 @@ ansible-playbook ansible/setup-windows-template.yml
 # Create FreeBSD 15.0 template
 ansible-playbook ansible/setup-freebsd-template.yml
 
+# Configure no-subscription repository (disables enterprise repo warning)
+ansible-playbook ansible/configure-no-subscription-repo.yml
+
+# Check if subscription popup was successfully disabled
+ansible-playbook ansible/check-subscription-popup-status.yml
+
 # Install QEMU guest agent on existing VMs (if needed)
 ansible-playbook ansible/install-qemu-agent.yml
 

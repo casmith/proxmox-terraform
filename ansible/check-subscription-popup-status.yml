@@ -1,0 +1,80 @@
+---
+- name: Check Subscription Popup Status and Troubleshoot
+  hosts: proxmox_hosts
+  gather_facts: no
+
+  tasks:
+    - name: Check if proxmoxlib.js exists
+      stat:
+        path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+      register: proxmoxlib_stat
+
+    - name: Display file status
+      debug:
+        msg: "proxmoxlib.js found at /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js"
+      when: proxmoxlib_stat.stat.exists
+
+    - name: Check if backup exists
+      stat:
+        path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak
+      register: backup_stat
+
+    - name: Display backup status
+      debug:
+        msg: "Backup file found: proxmoxlib.js.bak"
+      when: backup_stat.stat.exists
+
+    - name: Check if popup modification is applied
+      shell: grep -c "orig_cmd();" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js || true
+      register: popup_mod_check
+      changed_when: false
+
+    - name: Display modification status
+      debug:
+        msg: "Popup modification appears to be {{ 'APPLIED' if popup_mod_check.stdout|int > 0 else 'NOT APPLIED' }}"
+
+    - name: Search for subscription check pattern (original code)
+      shell: grep -n "data.status.toLowerCase()" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js || echo "Pattern not found"
+      register: subscription_pattern
+      changed_when: false
+
+    - name: Display subscription check code
+      debug:
+        msg: "{{ subscription_pattern.stdout_lines }}"
+
+    - name: Check pveproxy service status
+      systemd:
+        name: pveproxy
+      register: pveproxy_status
+
+    - name: Display pveproxy status
+      debug:
+        msg: "pveproxy service is {{ pveproxy_status.status.ActiveState }}"
+
+    - name: Get proxmox-widget-toolkit version
+      shell: dpkg -l | grep proxmox-widget-toolkit | awk '{print $2,$3}'
+      register: widget_version
+      changed_when: false
+
+    - name: Display widget toolkit version
+      debug:
+        msg: "{{ widget_version.stdout }}"
+
+    - name: Summary
+      debug:
+        msg:
+          - "============================================"
+          - "Subscription Popup Status Check"
+          - "============================================"
+          - ""
+          - "File exists: {{ proxmoxlib_stat.stat.exists }}"
+          - "Backup exists: {{ backup_stat.stat.exists }}"
+          - "Modification applied: {{ 'YES' if popup_mod_check.stdout|int > 0 else 'NO' }}"
+          - "pveproxy status: {{ pveproxy_status.status.ActiveState }}"
+          - "Widget toolkit: {{ widget_version.stdout }}"
+          - ""
+          - "If modification is applied but popup still appears:"
+          - "  1. Clear your browser cache completely"
+          - "  2. Try a hard refresh (Ctrl+Shift+R or Cmd+Shift+R)"
+          - "  3. Try accessing in incognito/private mode"
+          - "  4. Check if the pveproxy service needs a restart"
