@@ -1,0 +1,195 @@
+---
+- name: Create FreeBSD 15.0 Template with cloud-init on Proxmox
+  hosts: proxmox_hosts
+  gather_facts: no
+  vars:
+    template_id: 9003
+    template_name: "freebsd-15-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    # FreeBSD cloud image URL
+    # FreeBSD provides official cloud images via their download servers
+    freebsd_version: "15.0"
+    freebsd_release: "RELEASE"
+    # FreeBSD 15.0 uses a different naming scheme with BASIC-CLOUDINIT-ufs
+    cloud_image_url: "https://download.freebsd.org/releases/VM-IMAGES/{{ freebsd_version }}-{{ freebsd_release }}/amd64/Latest/FreeBSD-{{ freebsd_version }}-{{ freebsd_release }}-amd64-BASIC-CLOUDINIT-ufs.raw.xz"
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Download FreeBSD cloud image
+      get_url:
+        url: "{{ cloud_image_url }}"
+        dest: /tmp/freebsd-{{ freebsd_version }}-cloud.raw.xz
+        mode: '0644'
+        timeout: 600
+      when: vm_exists.rc != 0
+
+    - name: Extract FreeBSD image
+      command: xz -d /tmp/freebsd-{{ freebsd_version }}-cloud.raw.xz
+      args:
+        creates: /tmp/freebsd-{{ freebsd_version }}-cloud.raw
+      when: vm_exists.rc != 0
+
+    - name: Create base VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+        --ostype other
+      register: create_result
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/freebsd-{{ freebsd_version }}-cloud.raw
+        {{ storage }}
+      register: import_result
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot order=scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Create cloud-init user-data to pre-install QEMU agent
+      copy:
+        dest: /var/lib/vz/snippets/freebsd-template-init.yml
+        content: |
+          #cloud-config
+          package_update: true
+          package_upgrade: false
+          packages:
+            - qemu-guest-agent
+          runcmd:
+            - echo 'virtio_console_load="YES"' >> /boot/loader.conf
+            - kldload virtio_console
+            - sysrc qemu_guest_agent_enable="YES"
+            - sysrc qemu_guest_agent_flags="-d -v -l /var/log/qemu-ga.log"
+            - service qemu-guest-agent start
+        mode: '0644'
+      when: vm_exists.rc != 0
+
+    - name: Set cloud-init user-data for template
+      command: >
+        qm set {{ template_id }}
+        --cicustom "user=local:snippets/freebsd-template-init.yml"
+      when: vm_exists.rc != 0
+
+    - name: Start VM temporarily to run cloud-init and install QEMU agent
+      command: qm start {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Wait for cloud-init to complete and QEMU agent to be installed (2 minutes)
+      pause:
+        seconds: 120
+      when: vm_exists.rc != 0
+
+    - name: Shutdown VM gracefully
+      command: qm shutdown {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Wait for VM to shutdown completely
+      shell: |
+        for i in {1..60}; do
+          status=$(qm status {{ template_id }} | awk '{print $2}')
+          if [ "$status" = "stopped" ]; then
+            exit 0
+          fi
+          sleep 2
+        done
+        exit 1
+      when: vm_exists.rc != 0
+
+    - name: Remove custom cloud-init config (will use per-VM config from Terraform)
+      command: >
+        qm set {{ template_id }}
+        --delete cicustom
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded images and temporary files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/freebsd-{{ freebsd_version }}-cloud.raw.xz
+        - /tmp/freebsd-{{ freebsd_version }}-cloud.raw
+        - /var/lib/vz/snippets/freebsd-template-init.yml
+      when: vm_exists.rc != 0
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "FreeBSD Template {{ template_id }} created successfully!"
+          - "============================================"
+          - ""
+          - "Template includes:"
+          - "  ✓ FreeBSD {{ freebsd_version }}-{{ freebsd_release }}"
+          - "  ✓ BASIC-CLOUDINIT image (UFS filesystem)"
+          - "  ✓ Cloud-init enabled"
+          - "  ✓ Serial console"
+          - "  ✓ VirtIO drivers (built-in)"
+          - "  ✓ QEMU Guest Agent (pre-installed and enabled)"
+          - ""
+          - "Ready to use with Terraform!"
+          - "QEMU agent is already installed in the template"
+          - "New VMs will report IP addresses immediately"
+          - ""
+          - "Note: FreeBSD uses slightly different cloud-init syntax"
+          - "Package installation and basic configuration fully supported"

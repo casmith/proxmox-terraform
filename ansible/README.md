@@ -25,6 +25,12 @@ Creates template ID 9002. **Note:** Requires manual steps for Windows installati
 - **Quick Start:** See `WINDOWS_QUICK_START.md` for 5-step setup (~30 min)
 - **Detailed Guide:** See `WINDOWS_SETUP_GUIDE.md` for comprehensive instructions
 
+### FreeBSD 15.0 Template
+```bash
+ansible-playbook setup-freebsd-template.yml
+```
+Creates template ID 9003 with cloud-init and QEMU agent support.
+
 ## VM Configuration Playbooks
 
 ## Setup

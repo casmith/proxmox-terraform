@@ -68,3 +68,26 @@ module "windows" {
   windows_vm_disk_size = var.windows_vm_disk_size
   windows_vm_user      = var.windows_vm_user
 }
+
+# FreeBSD VMs Module
+module "freebsd" {
+  source = "./freebsd"
+
+  # Shared configuration
+  proxmox_node      = var.proxmox_node
+  vm_storage        = var.vm_storage
+  vm_network_bridge = var.vm_network_bridge
+  vm_ip_address     = var.vm_ip_address
+  vm_gateway        = var.vm_gateway
+  ssh_keys          = var.ssh_keys
+
+  # FreeBSD-specific configuration (passed through from root variables)
+  freebsd_vm_count     = var.freebsd_vm_count
+  freebsd_vm_name      = var.freebsd_vm_name
+  freebsd_vm_tags      = var.freebsd_vm_tags
+  freebsd_template_id  = var.freebsd_template_id
+  freebsd_vm_cores     = var.freebsd_vm_cores
+  freebsd_vm_memory    = var.freebsd_vm_memory
+  freebsd_vm_disk_size = var.freebsd_vm_disk_size
+  freebsd_vm_user      = var.freebsd_vm_user
+}

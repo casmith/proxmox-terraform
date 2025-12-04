@@ -31,6 +31,17 @@ output "windows_vm_ips" {
   value       = module.windows.vm_ips
 }
 
+# FreeBSD VMs Outputs
+output "freebsd_vm_details" {
+  description = "Detailed information about FreeBSD VMs"
+  value       = module.freebsd.vm_details
+}
+
+output "freebsd_vm_ips" {
+  description = "IP addresses of FreeBSD VMs"
+  value       = module.freebsd.vm_ips
+}
+
 # Combined outputs - all VMs grouped by type
 output "all_vms" {
   description = "All VM details grouped by type"
@@ -38,5 +49,6 @@ output "all_vms" {
     ubuntu  = module.ubuntu.vm_details
     talos   = module.talos.vm_details
     windows = module.windows.vm_details
+    freebsd = module.freebsd.vm_details
   }
 }

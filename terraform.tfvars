@@ -19,3 +19,5 @@ ubuntu_vm_disk_size = 20
 talos_vm_count = 3
 
 windows_vm_count = 1
+
+freebsd_vm_count = 2

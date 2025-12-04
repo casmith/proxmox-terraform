@@ -48,6 +48,9 @@ ansible-playbook ansible/setup-talos-template.yml
 # Create Windows 11 template (requires manual steps - see WINDOWS_SETUP_GUIDE.md)
 ansible-playbook ansible/setup-windows-template.yml
 
+# Create FreeBSD 15.0 template
+ansible-playbook ansible/setup-freebsd-template.yml
+
 # Install QEMU guest agent on existing VMs (if needed)
 ansible-playbook ansible/install-qemu-agent.yml
 
@@ -72,6 +75,10 @@ terraform output talos_vm_ips
 # Windows VMs only (when enabled)
 terraform output windows_vm_details
 terraform output windows_vm_ips
+
+# FreeBSD VMs only
+terraform output freebsd_vm_details
+terraform output freebsd_vm_ips
 ```
 
 ## Architecture
@@ -103,10 +110,15 @@ The project uses a **directory-based module architecture** for scalability. Each
 │   ├── main.tf             # Windows module definition
 │   ├── variables.tf        # Windows-specific variables
 │   └── outputs.tf          # Windows outputs
+├── freebsd/                 # FreeBSD VM configuration
+│   ├── main.tf             # FreeBSD module definition
+│   ├── variables.tf        # FreeBSD-specific variables
+│   └── outputs.tf          # FreeBSD outputs
 └── ansible/
     ├── setup-proxmox-template.yml   # Ubuntu template
     ├── setup-talos-template.yml     # Talos template
     ├── setup-windows-template.yml   # Windows 11 template
+    ├── setup-freebsd-template.yml   # FreeBSD template
     └── WINDOWS_SETUP_GUIDE.md       # Detailed Windows setup instructions
 ```
 
@@ -182,7 +194,8 @@ The `modules/proxmox-vm` module supports:
 Templates must be created before running Terraform:
 - **Ubuntu**: Template ID 9000 (via `setup-proxmox-template.yml`)
 - **Talos**: Template ID 9001 (via `setup-talos-template.yml`)
-- **Windows**: Template ID 9002 (template creation to be implemented)
+- **Windows**: Template ID 9002 (via `setup-windows-template.yml` - requires manual steps)
+- **FreeBSD**: Template ID 9003 (via `setup-freebsd-template.yml`)
 - Must have cloud-init enabled and QEMU agent configured
 
 ### Provider Authentication
@@ -224,13 +237,23 @@ Creates: `talos-k8s-01`, `talos-k8s-02`, `talos-k8s-03`
 
 ### Windows VMs (Template)
 ```hcl
-windows_vm_count     = 0  # Disabled by default (no template yet)
+windows_vm_count     = 0  # Disabled by default (requires manual setup)
 windows_vm_name      = "windows-vm"
 windows_vm_cores     = 4
 windows_vm_memory    = 8192
 windows_vm_disk_size = 60
 ```
 Creates: `windows-vm-01`, etc. (when template ID 9002 exists)
+
+### FreeBSD VMs
+```hcl
+freebsd_vm_count     = 2
+freebsd_vm_name      = "freebsd-vm"
+freebsd_vm_cores     = 2
+freebsd_vm_memory    = 2048
+freebsd_vm_disk_size = 20
+```
+Creates: `freebsd-vm-01`, `freebsd-vm-02`
 
 ### Disable a VM Type
 ```hcl

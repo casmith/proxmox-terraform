@@ -227,3 +227,55 @@ variable "windows_vm_user" {
   type        = string
   default     = "Administrator"
 }
+
+# ============================================================================
+# FreeBSD VM Configuration
+# ============================================================================
+
+variable "freebsd_vm_count" {
+  description = "Number of FreeBSD VMs to create"
+  type        = number
+  default     = 0
+}
+
+variable "freebsd_vm_name" {
+  description = "Base name for FreeBSD VMs"
+  type        = string
+  default     = "freebsd-vm"
+}
+
+variable "freebsd_vm_tags" {
+  description = "Tags for FreeBSD VMs (semicolon separated)"
+  type        = string
+  default     = "terraform;freebsd"
+}
+
+variable "freebsd_template_id" {
+  description = "ID of the FreeBSD cloud-init template to clone"
+  type        = number
+  default     = 9003
+}
+
+variable "freebsd_vm_cores" {
+  description = "Number of CPU cores for FreeBSD VMs"
+  type        = number
+  default     = 2
+}
+
+variable "freebsd_vm_memory" {
+  description = "Memory in MB for FreeBSD VMs"
+  type        = number
+  default     = 2048
+}
+
+variable "freebsd_vm_disk_size" {
+  description = "Disk size in GB for FreeBSD VMs"
+  type        = number
+  default     = 20
+}
+
+variable "freebsd_vm_user" {
+  description = "Default user for FreeBSD VMs"
+  type        = string
+  default     = "freebsd"
+}
