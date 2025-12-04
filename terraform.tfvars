@@ -20,4 +20,4 @@ talos_vm_count = 3
 
 windows_vm_count = 1
 
-freebsd_vm_count = 2
+freebsd_vm_count = 0
