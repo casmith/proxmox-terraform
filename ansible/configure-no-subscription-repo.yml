@@ -110,15 +110,15 @@
       when: proxmoxlib_stat.stat.exists
 
     - name: Check if popup is already disabled
-      shell: grep -q "orig_cmd();" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+      shell: grep -q "void({ //.*subscription" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
       register: popup_check
       failed_when: false
       changed_when: false
       when: proxmoxlib_stat.stat.exists
 
-    - name: Disable subscription popup in web UI (method 1 - inject early return)
+    - name: Disable subscription popup in web UI (replace entire check function)
       shell: |
-        sed -Ezi.orig "s/(function\(orig_cmd\)\s?\{)/\1\n\torig_cmd\(\);\n\treturn;/g" \
+        sed -i.bak "s/res.data.status.toLowerCase() !== 'active'/false/g" \
         /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
       when:
         - proxmoxlib_stat.stat.exists
