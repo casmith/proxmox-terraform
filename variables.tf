@@ -34,7 +34,7 @@ variable "proxmox_tls_insecure" {
 variable "proxmox_node" {
   description = "Proxmox node name"
   type        = string
-  default     = "pve"
+  default     = "pve1"
 }
 
 variable "proxmox_ssh_user" {
