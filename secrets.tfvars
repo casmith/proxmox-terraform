@@ -1,0 +1,14 @@
+{
+	"data": "ENC[AES256_GCM,data:lVe+CIo0U9tFzwwT06hnOh/boMthuGzQQLEwZSGeC0Q01Tbz7iMM3jWDPdl5iTPW/Y9g5m0lkjRUVpuCJfvDgcYDpHBHgxy0boqd8By9ulMptUnc2GZ8CsjKLngExkhaDzNbmHc+/kWkQtOPP6VW3oYS0+Oe1xZTp0O3Cdu0t5Q5oY7GxZkHMXjeUvnwp3WSOh+Ej6mZ707JfzIzsyXzF2Ehf+9Ny2EtBFFtubtsRLDaZ2Aff0bv2kUzIinP0eKvo8CkAw5BhCdy9rq2Qk2NPFKu7Opr9cDD82Fd2VlVt630xQiDPCb9AQ3Ws0hfgnVHJ/jmFRf3YndA+dT9p8bdKt6AbBSoQFP738368FkMF68OD/a8EHjGj93SAC4E4eW+vct2UXhSA7/bYuhxyiEsUnLCrvDmokcNaP1KarV+Ph+9vD3kMYGlbFlicJM+bc7lBD4NnWcmV82UJS4IMXtEPXEfvvoQIHhfX4/E4r0jBO2AVPD84y85pKc6ZtZWgKKbjT4PeuRrTPIeFBEWv69DbNtx9dt5YQ5xWvhAMIXL0t2ceaMmeU8Xd+5OcEBJMFDYkfUrSOoWyPufjh/hvVXnxiQ1Rf0jeF89EauPAxMOFTXep9bXFKodJcLMdP47mbVeLD2Yrs7cpylRIX81+cZGXJLZN5sjwEwLlVrZm5QEgTiblh0Bq3glhzAMd+AA313WxonMFmGPDd1OJYeShdfpWaMjIg77zKO4Y2WrSKAO3+UgmLatKcqy8QvwHZXznEGcujRhCivAkTYE4sPffaLFsLlCzSopnmPtg1hu/SrrHH4AerrDZBJpkp3ALCko7bQGvHHmTSbpOmrYPlDh5daxx0se8NM1WLUmd2FSSNXEn+uARhwgKUP+YkhJohemDffHVKBvg+ZpHLDnjskYralrrNRHxNgWeS5ylUOn5zs+WlO23gVM+g8BnMCMZdPVR+JUNP+wTawDH5IfYeLv5m+Gpms8yzCSjkRCTUv09hIsMJclxw1whC/YrbJE20pCwq3PElF/dk3E3CqLQRg9xQoMWvMqqt8H7lLYgVe1FS9EnebiywFsViv3Qma2wJthOMeq72tPniagaajk3THpLISASq61bHLpMoTswaT1PrqKX/7X7Zstl4Om,iv:ca75nP2BtqwgkTgUByECsGw3shNDAbt5fS7yfxzq+wo=,tag:haUqNNZGZIOzL0Lju7rxPQ==,type:str]",
+	"sops": {
+		"age": [
+			{
+				"recipient": "age1rpavzet35zr3pgqcvz9emvgmuzlc5w9w2cjwl86arr406c6hlaqqszqt2u",
+				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBud3dlTm9VQk5ueUZhb1N2\nZTJxeDhaYjloZXVTcUZibnNWRGl2NEVjMlc0CkZFTmgvdm5YQlhQVzBueUpaWnJR\nQUE0eVRxcG9McTFnWU4yNDZ2VzFIdUkKLS0tIExwWDdjTVBtaXRwZW9lenF6cG9k\neXc1b05jcjhhY0pWSWxxeVlLbUxTQk0KGyqjhPmciy8i4p9gPWDu4JnW6RVLxF3U\nB+iziF3/vf1CTgl0VYSFwlIjk+UavIoVoc/FBr2FEY43K4iOGXHkhQ==\n-----END AGE ENCRYPTED FILE-----\n"
+			}
+		],
+		"lastmodified": "2025-12-06T03:00:03Z",
+		"mac": "ENC[AES256_GCM,data:jQcftKJtl1iLidA6fVrS4sCmVU2dCaNqTa9EjcxDfWxSnZLMlXKWq/brpVxq56YzmcMnY3zIbT4kpr0QEWKDVa6c8wMekNWeKffHBxShS61zQZxx2nUc75cvl1yMnhRLURdSj+3JftZhQAouKrrzME3k23MZucFv2l6c+TE302E=,iv:flu7w5vyJ//oYAOtKztKLpXHjiD7AZZGYoA5nGJ99io=,tag:X37tI6Bdf7P5lHNuqbWFHw==,type:str]",
+		"version": "3.11.0"
+	}
+}

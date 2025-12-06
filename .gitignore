@@ -8,7 +8,9 @@ terraform.tfstate.backup
 terraform-apply.log
 
 # Variable files with secrets
-secrets.tfvars
+# Note: secrets.tfvars is encrypted with SOPS and is safe to commit
+# The age.key file contains the private key and must NOT be committed
+age.key
 secrets.*.tfvars
 *.auto.tfvars
 

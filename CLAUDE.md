@@ -8,7 +8,52 @@ This repository manages multiple types of VMs on Proxmox using Terraform for inf
 
 ## Tool Management
 
-All development tools (Terraform, Ansible, Python) are managed via `mise`. Always prefix commands with `mise exec --` or activate mise in your shell.
+All development tools (Terraform, Ansible, Python, SOPS) are managed via `mise`. Always prefix commands with `mise exec --` or activate mise in your shell.
+
+## Secrets Management
+
+Secrets are encrypted using [SOPS](https://github.com/getsops/sops) with age encryption. The `secrets.tfvars` file is encrypted in-place and safe to commit to git.
+
+### Prerequisites
+
+- **age key**: The private key file (`age.key`) must be present in the project root
+  - This file is gitignored and must NOT be committed
+  - Keep this file secure - it's required to decrypt secrets
+  - Public key is configured in `.sops.yaml`
+
+### Working with Encrypted Secrets
+
+```bash
+# Decrypt secrets in-place (for editing or Terraform use)
+SOPS_AGE_KEY_FILE=age.key mise exec -- sops --decrypt --in-place secrets.tfvars
+
+# Edit secrets directly (SOPS will decrypt, open editor, then re-encrypt)
+SOPS_AGE_KEY_FILE=age.key mise exec -- sops secrets.tfvars
+
+# Re-encrypt after manual edits
+SOPS_AGE_KEY_FILE=age.key mise exec -- sops --encrypt --in-place secrets.tfvars
+
+# View decrypted content without modifying file
+SOPS_AGE_KEY_FILE=age.key mise exec -- sops --decrypt secrets.tfvars
+```
+
+### Terraform Workflow with Encrypted Secrets
+
+When running Terraform commands, you need to decrypt `secrets.tfvars` first:
+
+```bash
+# Decrypt secrets
+SOPS_AGE_KEY_FILE=age.key mise exec -- sops --decrypt --in-place secrets.tfvars
+
+# Run Terraform commands
+mise exec -- terraform plan -var-file="secrets.tfvars"
+mise exec -- terraform apply -var-file="secrets.tfvars"
+
+# Re-encrypt secrets when done
+SOPS_AGE_KEY_FILE=age.key mise exec -- sops --encrypt --in-place secrets.tfvars
+```
+
+**Important**: Always re-encrypt `secrets.tfvars` before committing changes to ensure secrets remain protected.
 
 ## Common Commands
 

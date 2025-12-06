@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: secrets\.tfvars$
+    age: age1rpavzet35zr3pgqcvz9emvgmuzlc5w9w2cjwl86arr406c6hlaqqszqt2u

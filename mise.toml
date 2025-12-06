@@ -1,6 +1,7 @@
 [tools]
 ansible = "latest"
 python = "latest"
+sops = "latest"
 terraform = "latest"
 
 [tasks.tfplan]
