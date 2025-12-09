@@ -16,7 +16,9 @@ ubuntu_vm_memory    = 2048
 ubuntu_vm_disk_size = 20
 
 # Talos VMs
-talos_vm_count = 3
+talos_vm_count = 2
+talos_vm_memory	    = 4096
+talos_vm_cores      = 4
 
 windows_vm_count = 0
 
