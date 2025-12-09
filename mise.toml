@@ -8,10 +8,29 @@ terraform = "latest"
 SOPS_AGE_KEY_FILE = "age.key"
 
 [tasks.tfplan]
-run = "terraform plan"
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+terraform plan
+"""
 
 [tasks.tfapply]
-run = "terraform apply"
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+terraform apply
+"""
 
 [tasks.tfdestroy]
-run = "terraform destroy"
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+terraform destroy
+"""
+
+[tasks.tfinit]
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+terraform init
+"""

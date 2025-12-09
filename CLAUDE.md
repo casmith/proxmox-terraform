@@ -43,6 +43,45 @@ Terraform automatically decrypts `secrets.yaml` during plan/apply/destroy operat
 
 **Important**: The `secrets.yaml` file remains encrypted at rest and is safe to commit to git.
 
+## Remote State Backend
+
+Terraform state is stored remotely in an S3-compatible backend at `s3.kalde.in`. This enables team collaboration and prevents state conflicts.
+
+### Backend Configuration
+
+The S3 backend is configured in `versions.tf`:
+- **Bucket**: `terraform-state`
+- **Key**: `proxmox/terraform.tfstate`
+- **Endpoint**: `https://s3.kalde.in`
+
+S3 credentials are stored in the encrypted `secrets.yaml` file and automatically loaded when running Terraform commands via mise tasks.
+
+### Working with Remote State
+
+**Recommended**: Use mise tasks which automatically handle S3 credentials:
+```bash
+# Initialize (required after cloning or backend changes)
+mise run tfinit
+
+# Plan changes
+mise run tfplan
+
+# Apply changes
+mise run tfapply
+
+# Destroy infrastructure
+mise run tfdestroy
+```
+
+**Advanced**: Run terraform commands directly with credentials:
+```bash
+export AWS_ACCESS_KEY_ID=$(mise exec -- sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
+export AWS_SECRET_ACCESS_KEY=$(mise exec -- sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+mise exec -- terraform <command>
+```
+
+**Important**: The mise tasks in `mise.toml` automatically export AWS credentials from the encrypted secrets file before running Terraform commands.
+
 ## Common Commands
 
 ### Terraform Operations
