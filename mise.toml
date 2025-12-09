@@ -4,9 +4,14 @@ python = "latest"
 sops = "latest"
 terraform = "latest"
 
+[env]
+SOPS_AGE_KEY_FILE = "age.key"
+
 [tasks.tfplan]
-run = "terraform plan -var-file='secrets.tfvars'"
+run = "terraform plan"
+
 [tasks.tfapply]
-run = "terraform apply -var-file='secrets.tfvars'"
+run = "terraform apply"
+
 [tasks.tfdestroy]
-run = "terraform destroy -var-file='secrets.tfvars'"
+run = "terraform destroy"

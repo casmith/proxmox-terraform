@@ -11,20 +11,6 @@ variable "proxmox_api_url" {
   default     = "https://192.168.10.11:8006/api2/json"
 }
 
-variable "proxmox_api_token_id" {
-  description = "Proxmox API token ID (format: user@realm!tokenname)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "proxmox_api_token_secret" {
-  description = "Proxmox API token secret"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "proxmox_tls_insecure" {
   description = "Skip TLS verification (set to true for self-signed certs)"
   type        = bool
@@ -69,13 +55,6 @@ variable "vm_gateway" {
   description = "Gateway IP address"
   type        = string
   default     = "192.168.10.1"
-}
-
-variable "ssh_keys" {
-  description = "SSH public keys to add to VMs"
-  type        = string
-  default     = ""
-  sensitive   = true
 }
 
 # ============================================================================

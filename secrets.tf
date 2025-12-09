@@ -1,0 +1,14 @@
+# SOPS-encrypted secrets
+# This file reads encrypted secrets from secrets.yaml using the SOPS provider
+# Secrets are decrypted automatically during terraform operations
+
+data "sops_file" "secrets" {
+  source_file = "secrets.yaml"
+}
+
+# Local values for easy reference
+locals {
+  proxmox_api_token_id     = data.sops_file.secrets.data["proxmox_api_token_id"]
+  proxmox_api_token_secret = data.sops_file.secrets.data["proxmox_api_token_secret"]
+  ssh_keys                 = data.sops_file.secrets.data["ssh_keys"]
+}

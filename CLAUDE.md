@@ -12,7 +12,7 @@ All development tools (Terraform, Ansible, Python, SOPS) are managed via `mise`.
 
 ## Secrets Management
 
-Secrets are encrypted using [SOPS](https://github.com/getsops/sops) with age encryption. The `secrets.tfvars` file is encrypted in-place and safe to commit to git.
+Secrets are encrypted using [SOPS](https://github.com/getsops/sops) with age encryption and integrated into Terraform via the [carlpett/sops](https://registry.terraform.io/providers/carlpett/sops) provider. The `secrets.yaml` file is encrypted and safe to commit to git.
 
 ### Prerequisites
 
@@ -20,40 +20,28 @@ Secrets are encrypted using [SOPS](https://github.com/getsops/sops) with age enc
   - This file is gitignored and must NOT be committed
   - Keep this file secure - it's required to decrypt secrets
   - Public key is configured in `.sops.yaml`
+  - The `SOPS_AGE_KEY_FILE` environment variable is set globally in `mise.toml`
 
 ### Working with Encrypted Secrets
 
 ```bash
-# Decrypt secrets in-place (for editing or Terraform use)
-SOPS_AGE_KEY_FILE=age.key mise exec -- sops --decrypt --in-place secrets.tfvars
-
-# Edit secrets directly (SOPS will decrypt, open editor, then re-encrypt)
-SOPS_AGE_KEY_FILE=age.key mise exec -- sops secrets.tfvars
-
-# Re-encrypt after manual edits
-SOPS_AGE_KEY_FILE=age.key mise exec -- sops --encrypt --in-place secrets.tfvars
+# Edit secrets directly (SOPS will decrypt, open editor, then re-encrypt automatically)
+mise exec -- sops secrets.yaml
 
 # View decrypted content without modifying file
-SOPS_AGE_KEY_FILE=age.key mise exec -- sops --decrypt secrets.tfvars
+mise exec -- sops --decrypt secrets.yaml
 ```
 
-### Terraform Workflow with Encrypted Secrets
+### How It Works
 
-When running Terraform commands, you need to decrypt `secrets.tfvars` first:
+Terraform automatically decrypts `secrets.yaml` during plan/apply/destroy operations using the SOPS provider:
 
-```bash
-# Decrypt secrets
-SOPS_AGE_KEY_FILE=age.key mise exec -- sops --decrypt --in-place secrets.tfvars
+1. The `secrets.tf` file defines a `sops_file` data source that reads `secrets.yaml`
+2. Secrets are decrypted in-memory (never written to disk unencrypted)
+3. Values are accessed via `local.proxmox_api_token_id`, `local.proxmox_api_token_secret`, and `local.ssh_keys`
+4. No manual decrypt/encrypt steps needed
 
-# Run Terraform commands
-mise exec -- terraform plan -var-file="secrets.tfvars"
-mise exec -- terraform apply -var-file="secrets.tfvars"
-
-# Re-encrypt secrets when done
-SOPS_AGE_KEY_FILE=age.key mise exec -- sops --encrypt --in-place secrets.tfvars
-```
-
-**Important**: Always re-encrypt `secrets.tfvars` before committing changes to ensure secrets remain protected.
+**Important**: The `secrets.yaml` file remains encrypted at rest and is safe to commit to git.
 
 ## Common Commands
 
@@ -67,19 +55,22 @@ mise exec -- terraform init
 mise exec -- terraform validate
 
 # Plan changes (preview)
-mise exec -- terraform plan -var-file="secrets.tfvars"
+mise exec -- terraform plan
+# Or use the mise task: mise run tfplan
 
 # Apply changes (create/update VMs)
-mise exec -- terraform apply -var-file="secrets.tfvars"
+mise exec -- terraform apply
+# Or use the mise task: mise run tfapply
 
 # Destroy infrastructure
-mise exec -- terraform destroy -var-file="secrets.tfvars"
+mise exec -- terraform destroy
+# Or use the mise task: mise run tfdestroy
 
 # Format Terraform files
 mise exec -- terraform fmt -recursive
 ```
 
-**Critical**: Always include `-var-file="secrets.tfvars"` when running plan/apply/destroy commands.
+**Note**: Secrets are automatically decrypted via the SOPS provider - no manual steps required.
 
 ### Ansible Operations
 
@@ -144,6 +135,8 @@ The project uses a **directory-based module architecture** for scalability. Each
 ├── variables.tf             # Shared variables + OS-specific pass-throughs
 ├── outputs.tf               # Combined outputs from all OS modules
 ├── versions.tf              # Provider configuration
+├── secrets.tf               # SOPS data source for encrypted secrets
+├── secrets.yaml             # SOPS-encrypted secrets (safe to commit)
 ├── modules/
 │   └── proxmox-vm/          # Reusable base VM module
 │       ├── main.tf
@@ -216,14 +209,15 @@ To add a new VM type (e.g., FreeBSD, OpenMediaVault), follow the Windows templat
    }
    ```
 
-### Two-File Variable System
+### Secrets and Variables System
 
-Security-conscious variable configuration:
+Security-conscious configuration:
 
-1. **secrets.tfvars** (gitignored): Sensitive data
+1. **secrets.yaml** (encrypted with SOPS, safe to commit): Sensitive data
    - Proxmox API token ID and secret
    - SSH public keys
-   - Never committed to version control
+   - Encrypted at rest using age, decrypted automatically by Terraform
+   - Accessed via `secrets.tf` data source and local values
 
 2. **terraform.tfvars** (safe to commit): Non-sensitive configuration
    - VM counts, names, sizes
@@ -349,7 +343,7 @@ terraform state mv 'module.ubuntu_vms[0]' 'module.ubuntu.ubuntu_vms[0]'
 terraform state mv 'module.talos_vms[0]' 'module.talos.talos_vms[0]'
 
 # Verify with plan (should show no changes)
-terraform plan -var-file="secrets.tfvars"
+terraform plan
 ```
 
 If starting fresh or importing VMs:

@@ -11,7 +11,7 @@ module "ubuntu" {
   vm_network_bridge = var.vm_network_bridge
   vm_ip_address     = var.vm_ip_address
   vm_gateway        = var.vm_gateway
-  ssh_keys          = var.ssh_keys
+  ssh_keys          = local.ssh_keys
 
   # Ubuntu-specific configuration (passed through from root variables)
   ubuntu_vm_count     = var.ubuntu_vm_count
@@ -34,7 +34,7 @@ module "talos" {
   vm_network_bridge = var.vm_network_bridge
   vm_ip_address     = var.vm_ip_address
   vm_gateway        = var.vm_gateway
-  ssh_keys          = var.ssh_keys
+  ssh_keys          = local.ssh_keys
 
   # Talos-specific configuration (passed through from root variables)
   talos_vm_count     = var.talos_vm_count
@@ -56,7 +56,7 @@ module "windows" {
   vm_network_bridge = var.vm_network_bridge
   vm_ip_address     = var.vm_ip_address
   vm_gateway        = var.vm_gateway
-  ssh_keys          = var.ssh_keys
+  ssh_keys          = local.ssh_keys
 
   # Windows-specific configuration (passed through from root variables)
   windows_vm_count     = var.windows_vm_count
@@ -79,7 +79,7 @@ module "freebsd" {
   vm_network_bridge = var.vm_network_bridge
   vm_ip_address     = var.vm_ip_address
   vm_gateway        = var.vm_gateway
-  ssh_keys          = var.ssh_keys
+  ssh_keys          = local.ssh_keys
 
   # FreeBSD-specific configuration (passed through from root variables)
   freebsd_vm_count     = var.freebsd_vm_count
