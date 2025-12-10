@@ -12,8 +12,8 @@
     # Talos cloud image URL with QEMU guest agent extension
     # Use Image Factory with qemu-guest-agent system extension
     talos_version: "v1.11.5"
-    # Schematic ID: c9078f9419961640c712a8bf2bb9174933dfcf1da383fd8ea2b7dc21493f8bac (includes siderolabs/qemu-guest-agent)
-    talos_image_url: "https://factory.talos.dev/image/c9078f9419961640c712a8bf2bb9174933dfcf1da383fd8ea2b7dc21493f8bac/{{ talos_version }}/nocloud-amd64.raw.xz"
+    # Schematic ID: dc7b152cb3ea99b821fcb7340ce7168313ce393d663740b791c36f6e95fc8586 (includes siderolabs/qemu-guest-agent)
+    talos_image_url: "https://factory.talos.dev/image/dc7b152cb3ea99b821fcb7340ce7168313ce393d663740b791c36f6e95fc8586/{{ talos_version }}/nocloud-amd64.raw.xz"
 
   tasks:
     - name: Enable snippets on local storage for cloud-init
