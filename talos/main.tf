@@ -20,10 +20,10 @@ module "talos_vms" {
   vm_ip_address     = var.vm_ip_address
   vm_gateway        = var.vm_gateway
 
-  # Talos doesn't use cloud-init - these are ignored but required by module
-  # QEMU agent is installed via Talos system extensions (in the image)
+  # Talos doesn't use cloud-init - disable it to prevent interference
+  use_cloud_init    = false
   vm_user           = "talos"
-  ssh_keys          = "" # Talos doesn't use SSH keys via cloud-init
+  ssh_keys          = ""
   enable_qemu_agent = true
 
   # Talos ignores cloud-init packages/commands - agent must be in image

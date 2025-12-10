@@ -108,3 +108,9 @@ variable "custom_cloud_init" {
   type        = string
   default     = ""
 }
+
+variable "use_cloud_init" {
+  description = "Enable cloud-init configuration (disable for Talos and other systems that don't use cloud-init)"
+  type        = bool
+  default     = true
+}

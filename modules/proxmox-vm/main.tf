@@ -26,7 +26,7 @@ locals {
 }
 
 resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
-  count        = var.vm_count
+  count        = var.use_cloud_init ? var.vm_count : 0
   content_type = "snippets"
   datastore_id = "local"
   node_name    = var.proxmox_node
@@ -67,7 +67,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   network_device {
-    bridge = var.vm_network_bridge
+    bridge   = var.vm_network_bridge
+    firewall = false
   }
 
   initialization {
@@ -85,6 +86,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
       }
     }
 
-    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data[count.index].id
+    user_data_file_id = var.use_cloud_init ? proxmox_virtual_environment_file.cloud_init_user_data[count.index].id : null
   }
 }
