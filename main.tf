@@ -91,3 +91,25 @@ module "freebsd" {
   freebsd_vm_disk_size = var.freebsd_vm_disk_size
   freebsd_vm_user      = var.freebsd_vm_user
 }
+
+# Talos Linux Sandbox VMs Module
+module "talos_sandbox" {
+  source = "./talos-sandbox"
+
+  # Shared configuration
+  proxmox_node      = var.proxmox_node
+  vm_storage        = var.vm_storage
+  vm_network_bridge = var.vm_network_bridge
+  vm_ip_address     = var.vm_ip_address
+  vm_gateway        = var.vm_gateway
+  ssh_keys          = local.ssh_keys
+
+  # Talos Sandbox-specific configuration (passed through from root variables)
+  talos_vm_count     = var.talos_sandbox_vm_count
+  talos_vm_name      = var.talos_sandbox_vm_name
+  talos_vm_tags      = var.talos_sandbox_vm_tags
+  talos_template_id  = var.talos_sandbox_template_id
+  talos_vm_cores     = var.talos_sandbox_vm_cores
+  talos_vm_memory    = var.talos_sandbox_vm_memory
+  talos_vm_disk_size = var.talos_sandbox_vm_disk_size
+}

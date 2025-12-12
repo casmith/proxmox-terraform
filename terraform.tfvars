@@ -20,6 +20,12 @@ talos_vm_count = 2
 talos_vm_memory	    = 4096
 talos_vm_cores      = 4
 
+# Talos Sandbox VMs (for experimentation)
+talos_sandbox_vm_count  = 3
+talos_sandbox_vm_name   = "talos-sandbox"
+talos_sandbox_vm_cores  = 4
+talos_sandbox_vm_memory = 4096
+
 windows_vm_count = 0
 
 freebsd_vm_count = 0

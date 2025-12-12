@@ -258,3 +258,49 @@ variable "freebsd_vm_user" {
   type        = string
   default     = "freebsd"
 }
+
+# ============================================================================
+# Talos Linux Sandbox VM Configuration
+# ============================================================================
+
+variable "talos_sandbox_vm_count" {
+  description = "Number of Talos Linux Sandbox VMs to create"
+  type        = number
+  default     = 0
+}
+
+variable "talos_sandbox_vm_name" {
+  description = "Base name for Talos Sandbox VMs"
+  type        = string
+  default     = "talos-sandbox"
+}
+
+variable "talos_sandbox_vm_tags" {
+  description = "Tags for Talos Sandbox VMs (semicolon separated)"
+  type        = string
+  default     = "terraform;talos;kubernetes;sandbox"
+}
+
+variable "talos_sandbox_template_id" {
+  description = "ID of the Talos Linux template to clone for Sandbox"
+  type        = number
+  default     = 9001
+}
+
+variable "talos_sandbox_vm_cores" {
+  description = "Number of CPU cores for Talos Sandbox VMs"
+  type        = number
+  default     = 2
+}
+
+variable "talos_sandbox_vm_memory" {
+  description = "Memory in MB for Talos Sandbox VMs"
+  type        = number
+  default     = 4096
+}
+
+variable "talos_sandbox_vm_disk_size" {
+  description = "Disk size in GB for Talos Sandbox VMs"
+  type        = number
+  default     = 30
+}
