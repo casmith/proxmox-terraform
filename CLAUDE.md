@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This repository manages multiple types of VMs on Proxmox using Terraform for infrastructure provisioning and Ansible for configuration management. The architecture is modular, allowing easy addition of new VM types (Ubuntu, Talos Linux, Windows, etc.).
 
+**Cluster Support**: Ansible handles one-time Proxmox cluster creation and node joining (see `PROXMOX_CLUSTER_SETUP.md`), while Terraform continues to manage VMs across the cluster.
+
 ## Tool Management
 
 All development tools (Terraform, Ansible, Python, SOPS) are managed via `mise`. Always prefix commands with `mise exec --` or activate mise in your shell.
@@ -125,6 +127,9 @@ ansible-playbook ansible/setup-windows-template.yml
 
 # Create FreeBSD 15.0 template (requires manual steps - see FREEBSD_TEMPLATE_MANUAL_SETUP.md)
 ansible-playbook ansible/setup-freebsd-template.yml
+
+# Create Proxmox cluster and join nodes (see PROXMOX_CLUSTER_SETUP.md)
+ansible-playbook ansible/setup-proxmox-cluster.yml -i ansible/proxmox-inventory.ini
 
 # Configure no-subscription repository (disables enterprise repo warning)
 ansible-playbook ansible/configure-no-subscription-repo.yml

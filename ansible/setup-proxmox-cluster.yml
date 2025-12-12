@@ -1,0 +1,193 @@
+---
+- name: Set Up SSH Keys Between Cluster Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    secrets: "{{ lookup('community.sops.sops', '../secrets.yaml') | from_yaml }}"
+    proxmox_root_password: "{{ secrets.proxmox_root_password }}"
+
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: /root/.ssh
+        state: directory
+        mode: '0700'
+        owner: root
+        group: root
+
+    - name: Generate SSH key pair if it doesn't exist
+      command: ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N ""
+      args:
+        creates: /root/.ssh/id_ed25519
+
+    - name: Fetch public keys from all nodes
+      slurp:
+        src: /root/.ssh/id_ed25519.pub
+      register: ssh_public_keys
+
+    - name: Add all cluster node public keys to authorized_keys
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ hostvars[item]['ssh_public_keys']['content'] | b64decode }}"
+      loop: "{{ groups['proxmox_cluster'] }}"
+      when: item != inventory_hostname
+
+    - name: Add all cluster nodes to known_hosts
+      shell: |
+        ssh-keyscan -H {{ hostvars[item]['ansible_host'] }} >> /root/.ssh/known_hosts 2>/dev/null
+        ssh-keyscan -H {{ item }} >> /root/.ssh/known_hosts 2>/dev/null || true
+      loop: "{{ groups['proxmox_cluster'] }}"
+      when: item != inventory_hostname
+      changed_when: false
+
+- name: Create Proxmox Cluster on Primary Node
+  hosts: proxmox_cluster_primary
+  gather_facts: yes
+  vars:
+    cluster_name: "{{ cluster_name | default('khaos') }}"
+    cluster_network: "{{ cluster_network | default('192.168.10.0/24') }}"
+
+  tasks:
+    - name: Check if cluster already exists
+      command: pvecm status
+      register: cluster_status
+      failed_when: false
+      changed_when: false
+
+    - name: Display cluster status if exists
+      debug:
+        msg: "Cluster already exists on this node"
+      when: cluster_status.rc == 0
+
+    - name: Create new cluster
+      command: >
+        pvecm create {{ cluster_name }}
+        --link0 {{ ansible_facts["default_ipv4"]["address"] }}
+      when: cluster_status.rc != 0
+      register: cluster_create
+
+    - name: Wait for cluster to initialize
+      pause:
+        seconds: 10
+      when: cluster_create.changed
+
+    - name: Verify cluster creation
+      command: pvecm status
+      register: verify_cluster
+      when: cluster_create.changed
+      changed_when: false
+
+    - name: Display cluster information
+      debug:
+        var: verify_cluster.stdout_lines
+      when: cluster_create.changed
+
+- name: Join Secondary Nodes to Cluster
+  hosts: proxmox_cluster_secondary
+  gather_facts: yes
+  serial: 1
+  vars:
+    secrets: "{{ lookup('community.sops.sops', '../secrets.yaml') | from_yaml }}"
+    proxmox_root_password: "{{ secrets.proxmox_root_password }}"
+    primary_node_ip: "{{ hostvars[groups['proxmox_cluster_primary'][0]]['ansible_host'] }}"
+
+  tasks:
+    - name: Check if node is already in a cluster
+      command: pvecm status
+      register: node_cluster_status
+      failed_when: false
+      changed_when: false
+
+    - name: Display skip message if already in cluster
+      debug:
+        msg: "Node {{ inventory_hostname }} is already part of a cluster"
+      when: node_cluster_status.rc == 0
+
+    - name: Verify SSH connectivity to primary node
+      command: ssh -o BatchMode=yes -o ConnectTimeout=5 root@{{ primary_node_ip }} hostname
+      register: ssh_test
+      when: node_cluster_status.rc != 0
+      changed_when: false
+      failed_when: ssh_test.rc != 0
+
+    - name: Install pexpect (required for expect module)
+      package:
+        name: python3-pexpect
+        state: present
+      when: node_cluster_status.rc != 0
+
+    - name: Join cluster (with password prompt handling)
+      expect:
+        command: pvecm add {{ primary_node_ip }} --link0 {{ ansible_facts["default_ipv4"]["address"] }} --force
+        responses:
+          # Handle password prompt
+          "(?i)password": "{{ proxmox_root_password }}"
+          # Handle X509 certificate fingerprint confirmation
+          "Are you sure you want to continue connecting": "yes"
+        timeout: 120
+        echo: yes
+      when: node_cluster_status.rc != 0
+      register: cluster_join
+      no_log: true  # Re-enable password protection
+
+    - name: Display join result
+      debug:
+        msg:
+          - "Return code: {{ cluster_join.rc | default('N/A') }}"
+          - "Stdout: {{ cluster_join.stdout | default('') }}"
+      when: cluster_join.changed
+
+    - name: Wait for cluster sync (corosync convergence)
+      pause:
+        seconds: 30
+      when: cluster_join.changed
+
+    - name: Verify cluster membership
+      command: pvecm status
+      register: verify_join
+      when: cluster_join.changed
+      changed_when: false
+      retries: 3
+      delay: 10
+      until: verify_join.rc == 0
+
+    - name: Display join status
+      debug:
+        var: verify_join.stdout_lines
+      when: cluster_join.changed
+
+- name: Verify Cluster Health
+  hosts: proxmox_cluster_primary
+  gather_facts: no
+
+  tasks:
+    - name: Get cluster nodes
+      command: pvecm nodes
+      register: cluster_nodes
+      changed_when: false
+
+    - name: Display cluster nodes
+      debug:
+        msg:
+          - "============================================"
+          - "Proxmox Cluster Setup Complete!"
+          - "============================================"
+          - ""
+          - "Cluster nodes:"
+          - "{{ cluster_nodes.stdout }}"
+          - ""
+          - "Next steps:"
+          - "  1. Configure HA (high availability) if needed"
+          - "  2. Set up shared storage (Ceph, NFS, etc.)"
+          - "  3. Configure migration settings"
+          - "  4. Update Terraform to use cluster-aware settings"
+
+    - name: Get cluster status
+      command: pvecm status
+      register: final_status
+      changed_when: false
+
+    - name: Display final cluster status
+      debug:
+        var: final_status.stdout_lines

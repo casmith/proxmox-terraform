@@ -34,3 +34,12 @@ export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' |
 export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
 terraform init
 """
+
+[tasks.ansible-ping]
+run = "ansible proxmox_cluster -i ansible/proxmox-inventory.ini -m ping"
+
+[tasks.ansible-setup-cluster]
+run = "ansible-playbook ansible/setup-proxmox-cluster.yml -i ansible/proxmox-inventory.ini"
+
+[tasks.ansible-setup-nosub]
+run = "ansible-playbook ansible/configure-no-subscription-repo.yml -i ansible/proxmox-inventory.ini"
