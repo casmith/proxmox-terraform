@@ -6,7 +6,7 @@ This directory contains Ansible playbooks for creating Proxmox templates and con
 
 ### Ubuntu 24.04 Template
 ```bash
-ansible-playbook setup-proxmox-template.yml
+ansible-playbook setup-ubuntu2404-template.yml
 ```
 Creates template ID 9000 with cloud-init and QEMU agent support.
 

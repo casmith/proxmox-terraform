@@ -15,7 +15,7 @@
 
 | Feature | Ubuntu | Talos | Windows | FreeBSD |
 |---------|--------|-------|---------|---------|
-| **Playbook** | setup-proxmox-template.yml | setup-talos-template.yml | setup-windows-template.yml | setup-freebsd-template.yml |
+| **Playbook** | setup-ubuntu2404-template.yml | setup-talos-template.yml | setup-windows-template.yml | setup-freebsd-template.yml |
 | **Fully Automated** | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes |
 | **Manual Steps** | None | None | Many | None |
 | **Download Source** | Ubuntu Cloud | Talos Factory | Microsoft | FreeBSD Official |

@@ -116,20 +116,25 @@ mise exec -- terraform fmt -recursive
 ### Ansible Operations
 
 ```bash
-# Create Ubuntu 24.04 template
-ansible-playbook ansible/setup-proxmox-template.yml
-
-# Create Talos Linux template
-ansible-playbook ansible/setup-talos-template.yml
-
 # Create Windows 11 template (requires manual steps - see WINDOWS_SETUP_GUIDE.md)
 ansible-playbook ansible/setup-windows-template.yml
 
 # Create FreeBSD 15.0 template (requires manual steps - see FREEBSD_TEMPLATE_MANUAL_SETUP.md)
 ansible-playbook ansible/setup-freebsd-template.yml
 
-# Create Proxmox cluster and join nodes (see PROXMOX_CLUSTER_SETUP.md)
+# === CLUSTER SETUP (if using multiple nodes) ===
+
+# 1. Create Proxmox cluster and join nodes (see PROXMOX_CLUSTER_SETUP.md)
 ansible-playbook ansible/setup-proxmox-cluster.yml -i ansible/proxmox-inventory.ini
+
+# 2. Set up NFS shared storage for cluster-wide templates
+ansible-playbook ansible/setup-nfs-storage.yml -i ansible/proxmox-inventory.ini
+
+# 3. Create templates (will use NFS shared storage in cluster mode)
+ansible-playbook ansible/setup-ubuntu2404-template.yml -i ansible/proxmox-inventory.ini
+ansible-playbook ansible/setup-talos-template.yml -i ansible/proxmox-inventory.ini
+
+# === END CLUSTER SETUP ===
 
 # Configure no-subscription repository (disables enterprise repo warning)
 ansible-playbook ansible/configure-no-subscription-repo.yml
@@ -203,7 +208,7 @@ The project uses a **directory-based module architecture** for scalability. Each
 │   ├── variables.tf        # FreeBSD-specific variables
 │   └── outputs.tf          # FreeBSD outputs
 └── ansible/
-    ├── setup-proxmox-template.yml   # Ubuntu template
+    ├── setup-ubuntu2404-template.yml   # Ubuntu template
     ├── setup-talos-template.yml     # Talos template
     ├── setup-windows-template.yml   # Windows 11 template
     ├── setup-freebsd-template.yml   # FreeBSD template
@@ -283,11 +288,28 @@ The `modules/proxmox-vm` module supports:
 ### Template Requirements
 
 Templates must be created before running Terraform:
-- **Ubuntu**: Template ID 9000 (via `setup-proxmox-template.yml`)
+- **Ubuntu**: Template ID 9000 (via `setup-ubuntu2404-template.yml`)
 - **Talos**: Template ID 9001 (via `setup-talos-template.yml`)
 - **Windows**: Template ID 9002 (via `setup-windows-template.yml` - requires manual steps)
 - **FreeBSD**: Template ID 114 (requires manual setup - see `FREEBSD_TEMPLATE_MANUAL_SETUP.md`)
 - Must have cloud-init enabled and QEMU agent configured
+
+### Cluster-Wide Templates
+
+**How Templates Work in a Proxmox Cluster:**
+
+Templates created on NFS shared storage are **accessible cluster-wide** through the Proxmox API:
+- Template **configuration** is stored on the node where it was created (`/etc/pve/nodes/<node>/`)
+- Template **disks** are stored on NFS shared storage
+- VMs can be cloned from the template to **any node** using the API
+
+**Terraform Usage:**
+```hcl
+# Clone template to any node - Terraform handles the cross-node cloning automatically
+target_node = "pve2"  # Or "pve1", or any cluster node
+```
+
+The Proxmox provider uses the API which automatically handles cross-node cloning when templates are on shared storage. No special configuration needed!
 
 ### Provider Authentication
 

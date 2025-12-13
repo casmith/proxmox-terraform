@@ -1,11 +1,11 @@
 ---
 - name: Create Talos Linux Template on Proxmox
-  hosts: proxmox_hosts
+  hosts: proxmox_cluster_primary
   gather_facts: no
   vars:
     template_id: 9001
     template_name: "talos-linux-template"
-    storage: "local-lvm"
+    storage: "nfs-shared"  # Using NFS shared storage for cluster-wide access
     memory: 4096
     cores: 2
     bridge: "vmbr0"
@@ -59,13 +59,14 @@
         qm importdisk {{ template_id }}
         /tmp/talos-nocloud-amd64.raw
         {{ storage }}
+      register: import_result
       when: vm_exists.rc != 0
 
-    - name: Configure VM hardware - Attach disk
+    - name: Configure VM hardware - Attach imported disk
       command: >
         qm set {{ template_id }}
         --scsihw virtio-scsi-pci
-        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+        --scsi0 {{ storage }}:{{ template_id }}/vm-{{ template_id }}-disk-0.raw
       when: vm_exists.rc != 0
 
     - name: Configure VM hardware - Add cloud-init drive

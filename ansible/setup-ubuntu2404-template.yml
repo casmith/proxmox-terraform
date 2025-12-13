@@ -1,11 +1,11 @@
 ---
 - name: Create Ubuntu 24.04 Template with QEMU Guest Agent on Proxmox
-  hosts: proxmox_hosts
+  hosts: proxmox_cluster_primary
   gather_facts: no
   vars:
     template_id: 9000
     template_name: "ubuntu-2404-cloudinit-template"
-    storage: "local-lvm"
+    storage: "nfs-shared"  # Using NFS shared storage for cluster-wide access
     memory: 2048
     cores: 2
     bridge: "vmbr0"
@@ -53,11 +53,11 @@
       register: import_result
       when: vm_exists.rc != 0
 
-    - name: Configure VM hardware - Attach disk
+    - name: Configure VM hardware - Attach imported disk
       command: >
         qm set {{ template_id }}
         --scsihw virtio-scsi-pci
-        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+        --scsi0 {{ storage }}:{{ template_id }}/vm-{{ template_id }}-disk-0.raw
       when: vm_exists.rc != 0
 
     - name: Configure VM hardware - Add cloud-init drive
@@ -102,6 +102,11 @@
         state: absent
       when: vm_exists.rc != 0
 
+    - name: Wait for cluster configuration sync
+      pause:
+        seconds: 5
+        prompt: "Waiting for cluster configuration to sync across all nodes..."
+
     - name: Display success message
       debug:
         msg:
@@ -114,6 +119,43 @@
           - "  ✓ Cloud-init enabled"
           - "  ✓ Serial console"
           - "  ✓ Snippets storage configured"
+          - "  ✓ Stored on NFS shared storage"
           - ""
           - "Ready to use with Terraform!"
           - "Terraform will auto-install QEMU guest agent via cloud-init"
+
+- name: Verify Template Availability on All Cluster Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    template_id: 9000
+
+  tasks:
+    - name: Check if template is visible on this node
+      command: qm status {{ template_id }}
+      register: template_status
+      changed_when: false
+      failed_when: false
+
+    - name: Check NFS storage accessibility
+      shell: pvesm status | grep nfs-shared
+      register: storage_check
+      changed_when: false
+      failed_when: false
+
+    - name: Display template and storage status
+      debug:
+        msg:
+          - "Node: {{ inventory_hostname }}"
+          - "Template {{ template_id }}: {{ 'VISIBLE' if template_status.rc == 0 else 'NOT VISIBLE' }}"
+          - "NFS storage: {{ 'ACCESSIBLE' if storage_check.rc == 0 else 'NOT ACCESSIBLE' }}"
+
+    - name: Warn if template not visible
+      debug:
+        msg:
+          - "WARNING: Template {{ template_id }} is not visible on {{ inventory_hostname }}"
+          - "This may indicate:"
+          - "  - Cluster configuration sync delay (wait 10-30 seconds)"
+          - "  - NFS storage not mounted on this node"
+          - "  - Permissions issue with shared storage"
+      when: template_status.rc != 0

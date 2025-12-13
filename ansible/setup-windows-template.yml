@@ -1,11 +1,11 @@
 ---
 - name: Create Windows 11 Template with cloudbase-init on Proxmox
-  hosts: proxmox_hosts
+  hosts: proxmox_cluster_primary
   gather_facts: no
   vars:
     template_id: 9002
     template_name: "windows-11-cloudinit-template"
-    storage: "local-lvm"
+    storage: "nfs-shared"  # Using NFS shared storage for cluster-wide access
     iso_storage: "local"
     memory: 8192
     cores: 4

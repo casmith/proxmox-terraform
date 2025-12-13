@@ -1,0 +1,96 @@
+---
+- name: Configure NFS Shared Storage for Proxmox Cluster
+  hosts: proxmox_cluster_primary
+  gather_facts: no
+  vars:
+    nfs_server: "192.168.10.3"
+    nfs_export: "/volume1/isos"
+    storage_name: "nfs-shared"
+    # Content types: images (VM disks/templates), vztmpl (container templates),
+    # iso (ISO files), snippets (cloud-init), backup (backups)
+    content_types: "images,vztmpl,iso,snippets,backup"
+
+  tasks:
+    - name: Check if NFS storage already exists
+      shell: pvesm status | grep -w "{{ storage_name }}"
+      register: storage_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Display skip message if storage exists
+      debug:
+        msg: "Storage '{{ storage_name }}' already exists, skipping creation"
+      when: storage_exists.rc == 0
+
+    - name: Install NFS client packages
+      apt:
+        name:
+          - nfs-common
+        state: present
+        update_cache: yes
+      when: storage_exists.rc != 0
+
+    - name: Test NFS mount accessibility
+      command: showmount -e {{ nfs_server }}
+      register: nfs_test
+      when: storage_exists.rc != 0
+      changed_when: false
+
+    - name: Display available NFS exports
+      debug:
+        var: nfs_test.stdout_lines
+      when: storage_exists.rc != 0
+
+    - name: Add NFS storage to Proxmox
+      command: >
+        pvesm add nfs {{ storage_name }}
+        --server {{ nfs_server }}
+        --export {{ nfs_export }}
+        --content {{ content_types }}
+      when: storage_exists.rc != 0
+      register: storage_add
+
+    - name: Wait for storage to sync across cluster
+      pause:
+        seconds: 5
+      when: storage_add.changed
+
+    - name: Verify storage is available
+      command: pvesm status
+      register: storage_status
+      changed_when: false
+
+    - name: Display storage status
+      debug:
+        msg:
+          - "============================================"
+          - "NFS Shared Storage Configured Successfully!"
+          - "============================================"
+          - ""
+          - "Storage name: {{ storage_name }}"
+          - "NFS server: {{ nfs_server }}"
+          - "NFS export: {{ nfs_export }}"
+          - "Content types: {{ content_types }}"
+          - ""
+          - "This storage is now available on ALL cluster nodes"
+          - "Templates created here will be accessible cluster-wide"
+          - ""
+          - "Current storage status:"
+          - "{{ storage_status.stdout }}"
+
+- name: Verify NFS Storage on All Cluster Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    storage_name: "nfs-shared"
+
+  tasks:
+    - name: Check storage visibility on each node
+      shell: pvesm status | grep -w "{{ storage_name }}"
+      register: node_storage_check
+      changed_when: false
+      failed_when: false
+
+    - name: Display storage status per node
+      debug:
+        msg: "{{ inventory_hostname }}: Storage '{{ storage_name }}' is {{ 'AVAILABLE' if node_storage_check.rc == 0 else 'NOT FOUND' }}"
