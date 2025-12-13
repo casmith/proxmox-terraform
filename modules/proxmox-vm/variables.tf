@@ -25,6 +25,12 @@ variable "template_id" {
   type        = number
 }
 
+variable "template_node" {
+  description = "Node where the template is located (for cross-node cloning)"
+  type        = string
+  default     = null
+}
+
 variable "vm_cores" {
   description = "Number of CPU cores"
   type        = number
@@ -53,6 +59,12 @@ variable "vm_network_bridge" {
   description = "Network bridge to use"
   type        = string
   default     = "vmbr0"
+}
+
+variable "vm_mac_addresses" {
+  description = "List of MAC addresses for VMs (one per VM). If empty, Proxmox will auto-generate."
+  type        = list(string)
+  default     = []
 }
 
 variable "vm_ip_address" {

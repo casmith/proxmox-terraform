@@ -24,6 +24,12 @@ variable "talos_template_id" {
   default     = 9001
 }
 
+variable "talos_template_node" {
+  description = "Node where the Talos template is located"
+  type        = string
+  default     = "pve1"
+}
+
 variable "talos_vm_cores" {
   description = "Number of CPU cores for Talos Sandbox VMs"
   type        = number
@@ -40,6 +46,12 @@ variable "talos_vm_disk_size" {
   description = "Disk size in GB for Talos Sandbox VMs"
   type        = number
   default     = 30
+}
+
+variable "talos_vm_mac_addresses" {
+  description = "List of MAC addresses for Talos Sandbox VMs (one per VM)"
+  type        = list(string)
+  default     = []
 }
 
 # Shared variables that must be passed from root

@@ -28,6 +28,13 @@ export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key
 terraform destroy
 """
 
+[tasks.tfdestroy-talos-sandbox]
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+terraform destroy --target=module.talos_sandbox_pve1 --target=module.talos_sandbox_pve2
+"""
+
 [tasks.tfinit]
 run = """
 export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')

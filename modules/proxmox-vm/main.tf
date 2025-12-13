@@ -42,9 +42,14 @@ resource "proxmox_virtual_environment_vm" "vm" {
   name      = var.vm_count > 1 ? "${var.vm_name}-${format("%02d", count.index + 1)}" : var.vm_name
   node_name = var.proxmox_node
   tags      = split(";", var.vm_tags)
+  on_boot   = true
+  started   = true
 
   clone {
-    vm_id = var.template_id
+    vm_id        = var.template_id
+    node_name    = var.template_node
+    datastore_id = var.vm_storage  # Clone disk to target storage
+    full         = true
   }
 
   agent {
@@ -67,8 +72,9 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   network_device {
-    bridge   = var.vm_network_bridge
-    firewall = false
+    bridge      = var.vm_network_bridge
+    firewall    = false
+    mac_address = length(var.vm_mac_addresses) > 0 ? var.vm_mac_addresses[count.index] : null
   }
 
   initialization {

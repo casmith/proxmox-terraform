@@ -45,12 +45,18 @@ output "freebsd_vm_ips" {
 # Talos Sandbox VMs Outputs
 output "talos_sandbox_vm_details" {
   description = "Detailed information about Talos Sandbox VMs"
-  value       = module.talos_sandbox.vm_details
+  value       = merge(
+    module.talos_sandbox_pve1.vm_details,
+    module.talos_sandbox_pve2.vm_details
+  )
 }
 
 output "talos_sandbox_vm_ips" {
   description = "IP addresses of Talos Sandbox VMs"
-  value       = module.talos_sandbox.vm_ips
+  value       = concat(
+    module.talos_sandbox_pve1.vm_ips,
+    module.talos_sandbox_pve2.vm_ips
+  )
 }
 
 # Combined outputs - all VMs grouped by type
@@ -61,6 +67,9 @@ output "all_vms" {
     talos          = module.talos.vm_details
     windows        = module.windows.vm_details
     freebsd        = module.freebsd.vm_details
-    talos_sandbox  = module.talos_sandbox.vm_details
+    talos_sandbox  = merge(
+      module.talos_sandbox_pve1.vm_details,
+      module.talos_sandbox_pve2.vm_details
+    )
   }
 }

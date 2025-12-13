@@ -9,7 +9,8 @@ module "talos_vms" {
   vm_name      = var.talos_vm_name
   vm_tags      = var.talos_vm_tags
 
-  template_id = var.talos_template_id
+  template_id   = var.talos_template_id
+  template_node = var.talos_template_node
 
   vm_cores     = var.talos_vm_cores
   vm_memory    = var.talos_vm_memory
@@ -19,6 +20,7 @@ module "talos_vms" {
   vm_network_bridge = var.vm_network_bridge
   vm_ip_address     = var.vm_ip_address
   vm_gateway        = var.vm_gateway
+  vm_mac_addresses  = var.talos_vm_mac_addresses
 
   # Talos doesn't use cloud-init - disable it to prevent interference
   use_cloud_init    = false

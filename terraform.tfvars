@@ -3,7 +3,7 @@
 # Secrets are in secrets.tfvars (gitignored)
 
 # Shared Configuration
-vm_storage        = "local-lvm"
+vm_storage        = "local-lvm"  # VMs use local storage for performance; templates on nfs-shared for cluster access
 vm_network_bridge = "vmbr0"
 vm_ip_address     = "dhcp"
 vm_gateway        = "192.168.10.1"
