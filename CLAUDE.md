@@ -116,6 +116,25 @@ mise exec -- terraform fmt -recursive
 ### Ansible Operations
 
 ```bash
+# === TEMPLATE CREATION ===
+
+# Create ALL templates on ALL nodes (recommended)
+ansible-playbook ansible/setup-all-templates.yml -i ansible/proxmox-inventory.ini
+
+# Or create templates individually per node:
+
+# Create Ubuntu template on pve1 (ID 9000)
+ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-01
+
+# Create Talos template on pve1 (ID 9001)
+ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-01
+
+# Create Ubuntu template on pve2 (ID 9100)
+ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-02 -e ubuntu_template_id=9100
+
+# Create Talos template on pve2 (ID 9101)
+ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-02 -e talos_template_id=9101
+
 # Create Windows 11 template (requires manual steps - see WINDOWS_SETUP_GUIDE.md)
 ansible-playbook ansible/setup-windows-template.yml
 
@@ -127,12 +146,8 @@ ansible-playbook ansible/setup-freebsd-template.yml
 # 1. Create Proxmox cluster and join nodes (see PROXMOX_CLUSTER_SETUP.md)
 ansible-playbook ansible/setup-proxmox-cluster.yml -i ansible/proxmox-inventory.ini
 
-# 2. Set up NFS shared storage for cluster-wide templates
+# 2. Set up NFS shared storage (for VM data, not templates)
 ansible-playbook ansible/setup-nfs-storage.yml -i ansible/proxmox-inventory.ini
-
-# 3. Create templates (will use NFS shared storage in cluster mode)
-ansible-playbook ansible/setup-ubuntu2404-template.yml -i ansible/proxmox-inventory.ini
-ansible-playbook ansible/setup-talos-template.yml -i ansible/proxmox-inventory.ini
 
 # === END CLUSTER SETUP ===
 
@@ -152,110 +167,123 @@ ansible proxmox_vms -m ping
 ### View Outputs
 
 ```bash
-# All VMs grouped by type
-terraform output all_vms
+# All VMs grouped by node
+terraform output all_vms_by_node
 
-# Ubuntu VMs only
-terraform output ubuntu_vm_details
-terraform output ubuntu_vm_ips
+# pve1 VMs
+terraform output pve1_all_vms
+terraform output pve1_ubuntu_vm_details
+terraform output pve1_ubuntu_vm_ips
+terraform output pve1_talos_vm_details
+terraform output pve1_talos_vm_ips
+terraform output pve1_talos_sandbox_vm_details
+terraform output pve1_talos_sandbox_vm_ips
 
-# Talos VMs only
-terraform output talos_vm_details
-terraform output talos_vm_ips
+# pve2 VMs
+terraform output pve2_all_vms
+terraform output pve2_ubuntu_vm_details
+terraform output pve2_ubuntu_vm_ips
+terraform output pve2_talos_vm_details
+terraform output pve2_talos_vm_ips
+terraform output pve2_talos_sandbox_vm_details
+terraform output pve2_talos_sandbox_vm_ips
 
-# Windows VMs only (when enabled)
-terraform output windows_vm_details
-terraform output windows_vm_ips
+# All VMs of a specific type across all nodes
+terraform output all_ubuntu_vms
+terraform output all_talos_vms
+terraform output all_talos_sandbox_vms
 
-# FreeBSD VMs only
-terraform output freebsd_vm_details
-terraform output freebsd_vm_ips
+# All VM IPs across all nodes
+terraform output all_vm_ips
 ```
 
 ## Architecture
 
-### Modular Directory Structure
+### Node-Based Directory Structure
 
-The project uses a **directory-based module architecture** for scalability. Each OS type has its own directory containing all its configuration:
+The project uses a **node-based module architecture** for multi-node Proxmox clusters. Each node has its own directory containing all VM configurations and template IDs for that node:
 
 ```
 .
-├── main.tf                  # Root - orchestrates all OS modules
-├── variables.tf             # Shared variables + OS-specific pass-throughs
-├── outputs.tf               # Combined outputs from all OS modules
-├── versions.tf              # Provider configuration
-├── secrets.tf               # SOPS data source for encrypted secrets
-├── secrets.yaml             # SOPS-encrypted secrets (safe to commit)
+├── main.tf                    # Root - orchestrates node modules
+├── variables.tf               # Node-prefixed variables (pve1_, pve2_)
+├── outputs.tf                 # Combined outputs from all nodes
+├── terraform.tfvars           # VM counts and config per node
+├── versions.tf                # Provider configuration
+├── secrets.tf                 # SOPS data source for encrypted secrets
+├── secrets.yaml               # SOPS-encrypted secrets (safe to commit)
 ├── modules/
-│   └── proxmox-vm/          # Reusable base VM module
+│   └── proxmox-vm/            # Reusable base VM module
 │       ├── main.tf
 │       ├── variables.tf
 │       └── outputs.tf
-├── ubuntu/                  # Ubuntu VM configuration
-│   ├── main.tf             # Ubuntu module definition
-│   ├── variables.tf        # Ubuntu-specific variables
-│   └── outputs.tf          # Ubuntu outputs
-├── talos/                   # Talos Linux VM configuration
-│   ├── main.tf             # Talos module definition
-│   ├── variables.tf        # Talos-specific variables
-│   └── outputs.tf          # Talos outputs
-├── windows/                 # Windows VM configuration (template)
-│   ├── main.tf             # Windows module definition
-│   ├── variables.tf        # Windows-specific variables
-│   └── outputs.tf          # Windows outputs
-├── freebsd/                 # FreeBSD VM configuration
-│   ├── main.tf             # FreeBSD module definition
-│   ├── variables.tf        # FreeBSD-specific variables
-│   └── outputs.tf          # FreeBSD outputs
+├── nodes/
+│   ├── pve1/                  # pve1 node configuration
+│   │   ├── main.tf           # All VMs for pve1 (ubuntu, talos, etc.)
+│   │   ├── variables.tf      # Pass-through variables
+│   │   ├── outputs.tf        # pve1 outputs
+│   │   └── terraform.tfvars  # pve1-specific config (template IDs: 9000, 9001)
+│   └── pve2/                  # pve2 node configuration
+│       ├── main.tf           # All VMs for pve2 (ubuntu, talos, etc.)
+│       ├── variables.tf      # Pass-through variables
+│       ├── outputs.tf        # pve2 outputs
+│       └── terraform.tfvars  # pve2-specific config (template IDs: 9100, 9101)
 └── ansible/
-    ├── setup-ubuntu2404-template.yml   # Ubuntu template
-    ├── setup-talos-template.yml     # Talos template
-    ├── setup-windows-template.yml   # Windows 11 template
-    ├── setup-freebsd-template.yml   # FreeBSD template
-    └── WINDOWS_SETUP_GUIDE.md       # Detailed Windows setup instructions
+    ├── setup-all-templates.yml      # Creates all templates on all nodes
+    ├── setup-ubuntu2404-template.yml # Ubuntu template (per-node)
+    ├── setup-talos-template.yml      # Talos template (per-node)
+    ├── setup-windows-template.yml    # Windows template
+    └── setup-freebsd-template.yml    # FreeBSD template
 ```
 
-### Adding New VM Types
+### Adding New Nodes
 
-To add a new VM type (e.g., FreeBSD, OpenMediaVault), follow the Windows template structure:
+To add a new node (e.g., pve3):
 
-1. **Create OS directory**: `mkdir {type}/`
+1. **Create node directory**: `mkdir nodes/pve3`
 
-2. **Create Ansible playbook**: `ansible/setup-{type}-template.yml`
-   - Downloads OS image
-   - Creates Proxmox template with unique ID
-   - Configures cloud-init (if supported)
+2. **Copy configuration from existing node**:
+   ```bash
+   cp nodes/pve1/* nodes/pve3/
+   sed -i 's/pve1/pve3/g' nodes/pve3/*.tf
+   ```
 
-3. **Create module files in `{type}/` directory**:
-
-   **`{type}/main.tf`**:
+3. **Update `nodes/pve3/terraform.tfvars`** with node-specific template IDs:
    ```hcl
-   module "{type}_vms" {
-     source = "../modules/proxmox-vm"
-     count  = var.{type}_vm_count > 0 ? 1 : 0
+   proxmox_node = "pve3"
+   ubuntu_template_id = 9200  # Increment by 100 per node
+   talos_template_id  = 9201
+   ```
+
+4. **Add to root `main.tf`**:
+   ```hcl
+   module "pve3" {
+     source = "./nodes/pve3"
      # ... configuration
    }
    ```
 
-   **`{type}/variables.tf`**: Define OS-specific variables and shared variable inputs
+5. **Add to root `variables.tf`**: Define pve3_ prefixed variables
 
-   **`{type}/outputs.tf`**: Define module outputs
+6. **Add to root `terraform.tfvars`**: Configure VMs for pve3
 
-4. **Add to root `main.tf`**: Reference the new module
-   ```hcl
-   module "{type}" {
-     source = "./{type}"
-     # Pass shared and OS-specific variables
-   }
-   ```
+7. **Update `ansible/setup-all-templates.yml`**: Add pve3 to template ID mappings
 
-5. **Add variables to root `variables.tf`**: Define OS-specific variables for pass-through
+### Adding New VM Types
 
-6. **Add outputs to root `outputs.tf`**:
-   ```hcl
-   output "{type}_vm_details" {
-     value = module.{type}.vm_details
-   }
+To add a new VM type to all nodes (e.g., Rocky Linux):
+
+1. **Update each node's `main.tf`**: Add a new module block for the new VM type
+
+2. **Update `nodes/*/variables.tf`**: Add variables for the new VM type
+
+3. **Update `nodes/*/terraform.tfvars`**: Configure template ID and VM settings
+
+4. **Update root `variables.tf`**: Add node-prefixed variables (pve1_rocky_*, pve2_rocky_*)
+
+5. **Update root `terraform.tfvars`**: Configure VMs per node
+
+6. **Create Ansible playbook**: `ansible/setup-rocky-template.yml` or add to unified playbook
    ```
 
 ### Secrets and Variables System
@@ -287,29 +315,37 @@ The `modules/proxmox-vm` module supports:
 
 ### Template Requirements
 
-Templates must be created before running Terraform:
-- **Ubuntu**: Template ID 9000 (via `setup-ubuntu2404-template.yml`)
-- **Talos**: Template ID 9001 (via `setup-talos-template.yml`)
-- **Windows**: Template ID 9002 (via `setup-windows-template.yml` - requires manual steps)
-- **FreeBSD**: Template ID 114 (requires manual setup - see `FREEBSD_TEMPLATE_MANUAL_SETUP.md`)
-- Must have cloud-init enabled and QEMU agent configured
+**Per-Node Template Architecture:**
 
-### Cluster-Wide Templates
+Templates are stored on local-lvm storage on each node for performance and reliability. Each node has its own set of templates with unique IDs:
 
-**How Templates Work in a Proxmox Cluster:**
+**Template ID Schema:**
+- **pve1**: Ubuntu=9000, Talos=9001, Windows=9002
+- **pve2**: Ubuntu=9100, Talos=9101, Windows=9102
+- **Future nodes**: Increment by 100 per node (pve3 would use 9200, 9201, etc.)
 
-Templates created on NFS shared storage are **accessible cluster-wide** through the Proxmox API:
-- Template **configuration** is stored on the node where it was created (`/etc/pve/nodes/<node>/`)
-- Template **disks** are stored on NFS shared storage
-- VMs can be cloned from the template to **any node** using the API
+**Creating Templates:**
 
-**Terraform Usage:**
-```hcl
-# Clone template to any node - Terraform handles the cross-node cloning automatically
-target_node = "pve2"  # Or "pve1", or any cluster node
+```bash
+# Create Ubuntu template on pve1 (ID 9000)
+ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-01
+
+# Create Talos template on pve1 (ID 9001)
+ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-01
+
+# Create Ubuntu template on pve2 (ID 9100)
+ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-02 -e ubuntu_template_id=9100
+
+# Create Talos template on pve2 (ID 9101)
+ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-02 -e talos_template_id=9101
 ```
 
-The Proxmox provider uses the API which automatically handles cross-node cloning when templates are on shared storage. No special configuration needed!
+**Why Per-Node Templates?**
+- **Performance**: Local-lvm cloning is faster than NFS-based cloning
+- **Reliability**: No dependency on shared storage for VM provisioning
+- **Boot stability**: Cloning from local storage to local storage prevents boot issues
+
+**Note**: VMs clone from templates on the same node. Cross-node cloning is not supported when using local-lvm storage.
 
 ### Provider Authentication
 
@@ -328,49 +364,58 @@ The module generates cloud-init user-data that:
 
 ## VM Configuration Examples
 
-### Ubuntu VMs
-```hcl
-ubuntu_vm_count     = 2
-ubuntu_vm_name      = "ubuntu-vm"
-ubuntu_vm_cores     = 2
-ubuntu_vm_memory    = 2048
-ubuntu_vm_disk_size = 20
-```
-Creates: `ubuntu-vm-01`, `ubuntu-vm-02`
+Configuration is done per-node in `terraform.tfvars`:
 
-### Talos Linux VMs (Kubernetes)
+### Ubuntu VMs on pve1
 ```hcl
-talos_vm_count     = 3
-talos_vm_name      = "talos-k8s"
-talos_vm_cores     = 4
-talos_vm_memory    = 4096
-talos_vm_disk_size = 50
+# In terraform.tfvars
+pve1_ubuntu_vm_count     = 2
+pve1_ubuntu_vm_name      = "ubuntu-vm"
+pve1_ubuntu_vm_cores     = 2
+pve1_ubuntu_vm_memory    = 2048
+pve1_ubuntu_vm_disk_size = 20
 ```
-Creates: `talos-k8s-01`, `talos-k8s-02`, `talos-k8s-03`
+Creates: `ubuntu-vm-01`, `ubuntu-vm-02` on pve1 (using template 9000)
 
-### Windows VMs (Template)
+### Talos Linux VMs on pve1 (Kubernetes)
 ```hcl
-windows_vm_count     = 0  # Disabled by default (requires manual setup)
-windows_vm_name      = "windows-vm"
-windows_vm_cores     = 4
-windows_vm_memory    = 8192
-windows_vm_disk_size = 60
+# In terraform.tfvars
+pve1_talos_vm_count     = 3
+pve1_talos_vm_name      = "talos-k8s"
+pve1_talos_vm_cores     = 4
+pve1_talos_vm_memory    = 4096
+pve1_talos_vm_disk_size = 50
 ```
-Creates: `windows-vm-01`, etc. (when template ID 9002 exists)
+Creates: `talos-k8s-01`, `talos-k8s-02`, `talos-k8s-03` on pve1 (using template 9001)
 
-### FreeBSD VMs
+### Talos Sandbox VMs on pve2
 ```hcl
-freebsd_vm_count     = 2
-freebsd_vm_name      = "freebsd-vm"
-freebsd_vm_cores     = 2
-freebsd_vm_memory    = 2048
-freebsd_vm_disk_size = 20
+# In terraform.tfvars
+pve2_talos_sandbox_vm_count         = 2
+pve2_talos_sandbox_vm_name          = "talos-sandbox-pve2"
+pve2_talos_sandbox_vm_cores         = 4
+pve2_talos_sandbox_vm_memory        = 4096
+pve2_talos_sandbox_vm_mac_addresses = ["BC:24:11:42:4E:F3", "BC:24:11:B2:0B:F7"]
 ```
-Creates: `freebsd-vm-01`, `freebsd-vm-02`
+Creates: `talos-sandbox-pve2-01`, `talos-sandbox-pve2-02` on pve2 (using template 9101)
 
-### Disable a VM Type
+### Disable VMs on a specific node
 ```hcl
-ubuntu_vm_count = 0  # No Ubuntu VMs will be created
+# In terraform.tfvars
+pve2_ubuntu_vm_count = 0  # No Ubuntu VMs on pve2
+pve1_windows_vm_count = 0  # No Windows VMs on pve1
+```
+
+### Distribute VMs across nodes
+```hcl
+# In terraform.tfvars
+# 2 Ubuntu VMs on pve1, 3 Ubuntu VMs on pve2
+pve1_ubuntu_vm_count = 2
+pve2_ubuntu_vm_count = 3
+
+# 3 Talos VMs on pve1, 2 Talos VMs on pve2
+pve1_talos_vm_count = 3
+pve2_talos_vm_count = 2
 ```
 
 ## IP Address Resolution

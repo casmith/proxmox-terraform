@@ -1,75 +1,128 @@
-# Ubuntu VMs Outputs
-output "ubuntu_vm_details" {
-  description = "Detailed information about Ubuntu VMs"
-  value       = module.ubuntu.vm_details
+# Root Outputs File
+# Combines outputs from all node modules
+
+# ============================================================================
+# pve1 Outputs
+# ============================================================================
+
+output "pve1_ubuntu_vm_details" {
+  description = "Ubuntu VMs on pve1"
+  value       = module.pve1.ubuntu_vm_details
 }
 
-output "ubuntu_vm_ips" {
-  description = "IP addresses of Ubuntu VMs"
-  value       = module.ubuntu.vm_ips
+output "pve1_ubuntu_vm_ips" {
+  description = "Ubuntu VM IPs on pve1"
+  value       = module.pve1.ubuntu_vm_ips
 }
 
-# Talos VMs Outputs
-output "talos_vm_details" {
-  description = "Detailed information about Talos VMs"
-  value       = module.talos.vm_details
+output "pve1_talos_vm_details" {
+  description = "Talos VMs on pve1"
+  value       = module.pve1.talos_vm_details
 }
 
-output "talos_vm_ips" {
-  description = "IP addresses of Talos VMs"
-  value       = module.talos.vm_ips
+output "pve1_talos_vm_ips" {
+  description = "Talos VM IPs on pve1"
+  value       = module.pve1.talos_vm_ips
 }
 
-# Windows VMs Outputs
-output "windows_vm_details" {
-  description = "Detailed information about Windows VMs"
-  value       = module.windows.vm_details
+output "pve1_talos_sandbox_vm_details" {
+  description = "Talos Sandbox VMs on pve1"
+  value       = module.pve1.talos_sandbox_vm_details
 }
 
-output "windows_vm_ips" {
-  description = "IP addresses of Windows VMs"
-  value       = module.windows.vm_ips
+output "pve1_talos_sandbox_vm_ips" {
+  description = "Talos Sandbox VM IPs on pve1"
+  value       = module.pve1.talos_sandbox_vm_ips
 }
 
-# FreeBSD VMs Outputs
-output "freebsd_vm_details" {
-  description = "Detailed information about FreeBSD VMs"
-  value       = module.freebsd.vm_details
+output "pve1_all_vms" {
+  description = "All VMs on pve1"
+  value       = module.pve1.all_vms
 }
 
-output "freebsd_vm_ips" {
-  description = "IP addresses of FreeBSD VMs"
-  value       = module.freebsd.vm_ips
+# ============================================================================
+# pve2 Outputs
+# ============================================================================
+
+output "pve2_ubuntu_vm_details" {
+  description = "Ubuntu VMs on pve2"
+  value       = module.pve2.ubuntu_vm_details
 }
 
-# Talos Sandbox VMs Outputs
-output "talos_sandbox_vm_details" {
-  description = "Detailed information about Talos Sandbox VMs"
-  value       = merge(
-    module.talos_sandbox_pve1.vm_details,
-    module.talos_sandbox_pve2.vm_details
-  )
+output "pve2_ubuntu_vm_ips" {
+  description = "Ubuntu VM IPs on pve2"
+  value       = module.pve2.ubuntu_vm_ips
 }
 
-output "talos_sandbox_vm_ips" {
-  description = "IP addresses of Talos Sandbox VMs"
-  value       = concat(
-    module.talos_sandbox_pve1.vm_ips,
-    module.talos_sandbox_pve2.vm_ips
-  )
+output "pve2_talos_vm_details" {
+  description = "Talos VMs on pve2"
+  value       = module.pve2.talos_vm_details
 }
 
-# Combined outputs - all VMs grouped by type
-output "all_vms" {
-  description = "All VM details grouped by type"
+output "pve2_talos_vm_ips" {
+  description = "Talos VM IPs on pve2"
+  value       = module.pve2.talos_vm_ips
+}
+
+output "pve2_talos_sandbox_vm_details" {
+  description = "Talos Sandbox VMs on pve2"
+  value       = module.pve2.talos_sandbox_vm_details
+}
+
+output "pve2_talos_sandbox_vm_ips" {
+  description = "Talos Sandbox VM IPs on pve2"
+  value       = module.pve2.talos_sandbox_vm_ips
+}
+
+output "pve2_all_vms" {
+  description = "All VMs on pve2"
+  value       = module.pve2.all_vms
+}
+
+# ============================================================================
+# Combined Cluster Outputs
+# ============================================================================
+
+output "all_vms_by_node" {
+  description = "All VMs grouped by node"
   value = {
-    ubuntu         = module.ubuntu.vm_details
-    talos          = module.talos.vm_details
-    windows        = module.windows.vm_details
-    freebsd        = module.freebsd.vm_details
-    talos_sandbox  = merge(
-      module.talos_sandbox_pve1.vm_details,
-      module.talos_sandbox_pve2.vm_details
-    )
+    pve1 = module.pve1.all_vms
+    pve2 = module.pve2.all_vms
   }
+}
+
+output "all_ubuntu_vms" {
+  description = "All Ubuntu VMs across all nodes"
+  value = merge(
+    module.pve1.ubuntu_vm_details,
+    module.pve2.ubuntu_vm_details
+  )
+}
+
+output "all_talos_vms" {
+  description = "All Talos VMs across all nodes"
+  value = merge(
+    module.pve1.talos_vm_details,
+    module.pve2.talos_vm_details
+  )
+}
+
+output "all_talos_sandbox_vms" {
+  description = "All Talos Sandbox VMs across all nodes"
+  value = merge(
+    module.pve1.talos_sandbox_vm_details,
+    module.pve2.talos_sandbox_vm_details
+  )
+}
+
+output "all_vm_ips" {
+  description = "All VM IPs across all nodes"
+  value = concat(
+    module.pve1.ubuntu_vm_ips,
+    module.pve1.talos_vm_ips,
+    module.pve1.talos_sandbox_vm_ips,
+    module.pve2.ubuntu_vm_ips,
+    module.pve2.talos_vm_ips,
+    module.pve2.talos_sandbox_vm_ips
+  )
 }

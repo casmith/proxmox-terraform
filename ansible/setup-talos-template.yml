@@ -1,11 +1,13 @@
 ---
 - name: Create Talos Linux Template on Proxmox
-  hosts: proxmox_cluster_primary
+  hosts: "{{ target_hosts | default('proxmox_cluster') }}"
   gather_facts: no
   vars:
-    template_id: 9001
+    # Default template IDs - override with -e for different nodes
+    # pve1: 9001, pve2: 9101, etc.
+    template_id: "{{ talos_template_id | default(9001) }}"
     template_name: "talos-linux-template"
-    storage: "nfs-shared"  # Using NFS shared storage for cluster-wide access
+    storage: "local-lvm"  # Using local-lvm for per-node templates
     memory: 4096
     cores: 2
     bridge: "vmbr0"

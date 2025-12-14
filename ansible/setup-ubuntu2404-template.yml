@@ -1,11 +1,13 @@
 ---
 - name: Create Ubuntu 24.04 Template with QEMU Guest Agent on Proxmox
-  hosts: proxmox_cluster_primary
+  hosts: "{{ target_hosts | default('proxmox_cluster') }}"
   gather_facts: no
   vars:
-    template_id: 9000
+    # Default template IDs - override with -e for different nodes
+    # pve1: 9000, pve2: 9100, etc.
+    template_id: "{{ ubuntu_template_id | default(9000) }}"
     template_name: "ubuntu-2404-cloudinit-template"
-    storage: "nfs-shared"  # Using NFS shared storage for cluster-wide access
+    storage: "local-lvm"  # Using local-lvm for per-node templates
     memory: 2048
     cores: 2
     bridge: "vmbr0"
@@ -57,7 +59,7 @@
       command: >
         qm set {{ template_id }}
         --scsihw virtio-scsi-pci
-        --scsi0 {{ storage }}:{{ template_id }}/vm-{{ template_id }}-disk-0.raw
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
       when: vm_exists.rc != 0
 
     - name: Configure VM hardware - Add cloud-init drive

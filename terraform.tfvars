@@ -1,31 +1,81 @@
-# VM Configuration
-# This file can be safely committed to git
-# Secrets are in secrets.tfvars (gitignored)
+# Root Terraform Configuration
+# Node-based architecture - configure VMs per node
 
-# Shared Configuration
-vm_storage        = "local-lvm"  # VMs use local storage for performance; templates on nfs-shared for cluster access
+# ============================================================================
+# Shared Configuration (applies to all nodes)
+# ============================================================================
+
+vm_storage        = "local-lvm"
 vm_network_bridge = "vmbr0"
 vm_ip_address     = "dhcp"
 vm_gateway        = "192.168.10.1"
 
-# Ubuntu VMs
-ubuntu_vm_count     = 2
-ubuntu_vm_name      = "ubuntu-vm"
-ubuntu_vm_cores     = 2
-ubuntu_vm_memory    = 2048
-ubuntu_vm_disk_size = 20
+# ============================================================================
+# pve1 Node Configuration
+# ============================================================================
 
-# Talos VMs
-talos_vm_count = 2
-talos_vm_memory	    = 4096
-talos_vm_cores      = 4
+# Template IDs on pve1 (local-lvm storage)
+pve1_ubuntu_template_id  = 9000
+pve1_talos_template_id   = 9001
+pve1_windows_template_id = 9002
+pve1_freebsd_template_id = 9003
 
-# Talos Sandbox VMs (for experimentation)
-talos_sandbox_vm_count  = 3
-talos_sandbox_vm_name   = "talos-sandbox"
-talos_sandbox_vm_cores  = 4
-talos_sandbox_vm_memory = 4096
+# Ubuntu VMs on pve1
+pve1_ubuntu_vm_count         = 2
+pve1_ubuntu_vm_name          = "ubuntu-vm"
+pve1_ubuntu_vm_cores         = 2
+pve1_ubuntu_vm_memory        = 2048
+pve1_ubuntu_vm_disk_size     = 20
+pve1_ubuntu_vm_mac_addresses = ["52:54:00:06:d2:7f", "52:54:00:33:3f:a8"]
 
-windows_vm_count = 0
+# Talos VMs on pve1
+pve1_talos_vm_count         = 2
+pve1_talos_vm_name          = "talos-vm"
+pve1_talos_vm_cores         = 4
+pve1_talos_vm_memory        = 4096
+pve1_talos_vm_disk_size     = 30
+pve1_talos_vm_mac_addresses = ["52:54:00:c4:9c:d7", "52:54:00:4d:e5:5d"]
 
-freebsd_vm_count = 0
+# Talos Sandbox VMs on pve1
+pve1_talos_sandbox_vm_count         = 1
+pve1_talos_sandbox_vm_name          = "talos-sandbox-pve1"
+pve1_talos_sandbox_vm_cores         = 4
+pve1_talos_sandbox_vm_memory        = 4096
+pve1_talos_sandbox_vm_disk_size     = 30
+pve1_talos_sandbox_vm_mac_addresses = ["52:54:00:5a:52:e9"]
+
+# Windows VMs on pve1 (disabled)
+pve1_windows_vm_count = 0
+
+# FreeBSD VMs on pve1 (disabled)
+pve1_freebsd_vm_count = 0
+
+# ============================================================================
+# pve2 Node Configuration
+# ============================================================================
+
+# Template IDs on pve2 (local-lvm storage)
+pve2_ubuntu_template_id  = 9100
+pve2_talos_template_id   = 9101
+pve2_windows_template_id = 9102
+pve2_freebsd_template_id = 9103
+
+# Ubuntu VMs on pve2 (disabled)
+pve2_ubuntu_vm_count = 0
+
+# Talos VMs on pve2 (disabled)
+pve2_talos_vm_count = 0
+
+# Talos Sandbox VMs on pve2
+pve2_talos_sandbox_vm_count         = 2
+pve2_talos_sandbox_vm_name          = "talos-sandbox-pve2"
+pve2_talos_sandbox_vm_cores         = 4
+pve2_talos_sandbox_vm_memory        = 4096
+pve2_talos_sandbox_vm_disk_size     = 30
+pve2_talos_sandbox_vm_mac_addresses = ["52:54:00:0c:08:a7", "52:54:00:9c:30:b8"]
+
+# Windows VMs on pve2 (disabled)
+pve2_windows_vm_count = 0
+
+# FreeBSD VMs on pve2 (disabled)
+pve2_freebsd_vm_count = 0

@@ -3,42 +3,43 @@ ansible = "latest"
 python = "latest"
 sops = "latest"
 terraform = "latest"
+aws = "2"
 
 [env]
 SOPS_AGE_KEY_FILE = "age.key"
 
 [tasks.tfplan]
 run = """
-export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
-export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
 terraform plan
 """
 
 [tasks.tfapply]
 run = """
-export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
-export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
 terraform apply
 """
 
 [tasks.tfdestroy]
 run = """
-export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
-export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
 terraform destroy
 """
 
 [tasks.tfdestroy-talos-sandbox]
 run = """
-export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
-export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
 terraform destroy --target=module.talos_sandbox_pve1 --target=module.talos_sandbox_pve2
 """
 
 [tasks.tfinit]
 run = """
-export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}')
-export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}')
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
 terraform init
 """
 

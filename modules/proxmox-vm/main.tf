@@ -1,26 +1,26 @@
 locals {
-  default_cloud_init = <<-EOF
-  #cloud-config
-  users:
-    - name: ${var.vm_user}
-      ssh_authorized_keys:
-        - ${trimspace(var.ssh_keys)}
-      sudo: ALL=(ALL) NOPASSWD:ALL
-      groups: sudo
-      shell: /bin/bash
-  packages:
+  default_cloud_init = <<EOF
+#cloud-config
+users:
+  - name: ${var.vm_user}
+    ssh_authorized_keys:
+      - ${trimspace(var.ssh_keys)}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+packages:
 %{for pkg in var.cloud_init_packages~}
-    - ${pkg}
+  - ${pkg}
 %{endfor~}
-  runcmd:
+runcmd:
 %{if var.enable_qemu_agent && var.use_systemd_qemu_agent~}
-    - systemctl start qemu-guest-agent
-    - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  - systemctl enable qemu-guest-agent
 %{endif~}
 %{for cmd in var.cloud_init_runcmd~}
-    - ${cmd}
+  - ${cmd}
 %{endfor~}
-  EOF
+EOF
 
   cloud_init_data = var.custom_cloud_init != "" ? var.custom_cloud_init : local.default_cloud_init
 }
@@ -45,11 +45,12 @@ resource "proxmox_virtual_environment_vm" "vm" {
   on_boot   = true
   started   = true
 
+  timeout_shutdown_vm = 300  # 5 minutes timeout for shutdown operations
+
   clone {
-    vm_id        = var.template_id
-    node_name    = var.template_node
-    datastore_id = var.vm_storage  # Clone disk to target storage
-    full         = true
+    vm_id     = var.template_id
+    node_name = var.template_node
+    full      = true
   }
 
   agent {

@@ -1,0 +1,242 @@
+---
+#  Unified Template Creation Playbook
+# Creates all VM templates on all cluster nodes with per-node template IDs
+# Template ID Schema: pve1=9000/9001, pve2=9100/9101, etc.
+
+- name: Create Ubuntu Templates on All Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    template_name: "ubuntu-2404-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    cloud_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+    # Template ID mapping by node
+    template_ids:
+      proxmox-01: 9000
+      proxmox-02: 9100
+
+  tasks:
+    - name: Set template ID for this node
+      set_fact:
+        template_id: "{{ template_ids[inventory_hostname] }}"
+
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if Ubuntu template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if Ubuntu template already exists
+      debug:
+        msg: "Ubuntu template {{ template_id }} already exists on {{ inventory_hostname }}, skipping"
+      when: vm_exists.rc == 0
+
+    - name: Download Ubuntu 24.04 cloud image
+      get_url:
+        url: "{{ cloud_image_url }}"
+        dest: /tmp/noble-server-cloudimg-amd64.img
+        mode: '0644'
+        timeout: 300
+      when: vm_exists.rc != 0
+
+    - name: Create base Ubuntu VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/noble-server-cloudimg-amd64.img
+        {{ storage }}
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach imported disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot c
+        --bootdisk scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded Ubuntu image
+      file:
+        path: /tmp/noble-server-cloudimg-amd64.img
+        state: absent
+      when: vm_exists.rc != 0
+
+- name: Create Talos Templates on All Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    template_name: "talos-linux-template"
+    storage: "local-lvm"
+    memory: 4096
+    cores: 2
+    bridge: "vmbr0"
+    talos_version: "v1.11.5"
+    # Schematic ID: dc7b152cb3ea99b821fcb7340ce7168313ce393d663740b791c36f6e95fc8586 (includes siderolabs/qemu-guest-agent)
+    talos_image_url: "https://factory.talos.dev/image/dc7b152cb3ea99b821fcb7340ce7168313ce393d663740b791c36f6e95fc8586/{{ talos_version }}/nocloud-amd64.raw.xz"
+    # Template ID mapping by node
+    template_ids:
+      proxmox-01: 9001
+      proxmox-02: 9101
+
+  tasks:
+    - name: Set template ID for this node
+      set_fact:
+        template_id: "{{ template_ids[inventory_hostname] }}"
+
+    - name: Check if Talos template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if Talos template already exists
+      debug:
+        msg: "Talos template {{ template_id }} already exists on {{ inventory_hostname }}, skipping"
+      when: vm_exists.rc == 0
+
+    - name: Download Talos Linux cloud image
+      get_url:
+        url: "{{ talos_image_url }}"
+        dest: /tmp/talos-nocloud-amd64.raw.xz
+        mode: '0644'
+        timeout: 600
+      when: vm_exists.rc != 0
+
+    - name: Extract Talos image
+      command: xz -d /tmp/talos-nocloud-amd64.raw.xz
+      args:
+        creates: /tmp/talos-nocloud-amd64.raw
+      when: vm_exists.rc != 0
+
+    - name: Create base Talos VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/talos-nocloud-amd64.raw
+        {{ storage }}
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach imported disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot order=scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded Talos images
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/talos-nocloud-amd64.raw.xz
+        - /tmp/talos-nocloud-amd64.raw
+      when: vm_exists.rc != 0
+
+- name: Display Summary
+  hosts: proxmox_cluster
+  gather_facts: no
+  tasks:
+    - name: Show template creation summary
+      debug:
+        msg:
+          - "============================================"
+          - "Template Creation Complete on {{ inventory_hostname }}"
+          - "============================================"
+          - ""
+          - "Templates created:"
+          - "  {% if inventory_hostname == 'proxmox-01' %}Ubuntu: 9000, Talos: 9001{% elif inventory_hostname == 'proxmox-02' %}Ubuntu: 9100, Talos: 9101{% endif %}"
+          - ""
+          - "Ready to use with Terraform!"
