@@ -111,6 +111,46 @@ variable "ubuntu_vm_mac_addresses" {
 }
 
 # ============================================================================
+# Ubuntu High-Memory VM Configuration
+# ============================================================================
+
+variable "ubuntu_highmem_vm_count" {
+  description = "Number of high-memory Ubuntu VMs to create on this node"
+  type        = number
+  default     = 0
+}
+
+variable "ubuntu_highmem_vm_name" {
+  description = "Base name for high-memory Ubuntu VMs"
+  type        = string
+  default     = "ubuntu-highmem-vm"
+}
+
+variable "ubuntu_highmem_vm_cores" {
+  description = "Number of CPU cores for high-memory Ubuntu VMs"
+  type        = number
+  default     = 2
+}
+
+variable "ubuntu_highmem_vm_memory" {
+  description = "Memory in MB for high-memory Ubuntu VMs"
+  type        = number
+  default     = 8192
+}
+
+variable "ubuntu_highmem_vm_disk_size" {
+  description = "Disk size in GB for high-memory Ubuntu VMs"
+  type        = number
+  default     = 20
+}
+
+variable "ubuntu_highmem_vm_mac_addresses" {
+  description = "MAC addresses for high-memory Ubuntu VMs"
+  type        = list(string)
+  default     = []
+}
+
+# ============================================================================
 # Talos VM Configuration
 # ============================================================================
 

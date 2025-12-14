@@ -100,6 +100,14 @@ module "pve2" {
   ubuntu_vm_tags          = var.pve2_ubuntu_vm_tags
   ubuntu_vm_mac_addresses = var.pve2_ubuntu_vm_mac_addresses
 
+  # Ubuntu High-Memory VM configuration
+  ubuntu_highmem_vm_count         = var.pve2_ubuntu_highmem_vm_count
+  ubuntu_highmem_vm_name          = var.pve2_ubuntu_highmem_vm_name
+  ubuntu_highmem_vm_cores         = var.pve2_ubuntu_highmem_vm_cores
+  ubuntu_highmem_vm_memory        = var.pve2_ubuntu_highmem_vm_memory
+  ubuntu_highmem_vm_disk_size     = var.pve2_ubuntu_highmem_vm_disk_size
+  ubuntu_highmem_vm_mac_addresses = var.pve2_ubuntu_highmem_vm_mac_addresses
+
   # Talos VM configuration
   talos_vm_count         = var.pve2_talos_vm_count
   talos_vm_name          = var.pve2_talos_vm_name

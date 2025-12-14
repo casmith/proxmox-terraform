@@ -15,6 +15,20 @@ output "ubuntu_vm_ips" {
 }
 
 # ============================================================================
+# Ubuntu High-Memory VM Outputs
+# ============================================================================
+
+output "ubuntu_highmem_vm_details" {
+  description = "Detailed information about high-memory Ubuntu VMs on pve2"
+  value       = try(module.ubuntu_highmem_vms[0].vm_details, {})
+}
+
+output "ubuntu_highmem_vm_ips" {
+  description = "IP addresses of high-memory Ubuntu VMs on pve2"
+  value       = try(module.ubuntu_highmem_vms[0].vm_ips, [])
+}
+
+# ============================================================================
 # Talos VM Outputs
 # ============================================================================
 
@@ -77,10 +91,11 @@ output "freebsd_vm_ips" {
 output "all_vms" {
   description = "All VMs on pve2 grouped by type"
   value = {
-    ubuntu        = try(module.ubuntu_vms[0].vm_details, {})
-    talos         = try(module.talos_vms[0].vm_details, {})
-    talos_sandbox = try(module.talos_sandbox_vms[0].vm_details, {})
-    windows       = try(module.windows_vms[0].vm_details, {})
-    freebsd       = try(module.freebsd_vms[0].vm_details, {})
+    ubuntu         = try(module.ubuntu_vms[0].vm_details, {})
+    ubuntu_highmem = try(module.ubuntu_highmem_vms[0].vm_details, {})
+    talos          = try(module.talos_vms[0].vm_details, {})
+    talos_sandbox  = try(module.talos_sandbox_vms[0].vm_details, {})
+    windows        = try(module.windows_vms[0].vm_details, {})
+    freebsd        = try(module.freebsd_vms[0].vm_details, {})
   }
 }

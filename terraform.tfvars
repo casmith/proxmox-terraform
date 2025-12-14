@@ -60,8 +60,21 @@ pve2_talos_template_id   = 9101
 pve2_windows_template_id = 9102
 pve2_freebsd_template_id = 9103
 
-# Ubuntu VMs on pve2 (disabled)
-pve2_ubuntu_vm_count = 0
+# Ubuntu VMs on pve2
+pve2_ubuntu_vm_count         = 1
+pve2_ubuntu_vm_name          = "ubuntu-vm"
+pve2_ubuntu_vm_cores         = 2
+pve2_ubuntu_vm_memory        = 2048
+pve2_ubuntu_vm_disk_size     = 20
+pve2_ubuntu_vm_mac_addresses = ["52:54:00:36:34:cb"]
+
+# Ubuntu High-Memory VMs on pve2
+pve2_ubuntu_highmem_vm_count         = 1
+pve2_ubuntu_highmem_vm_name          = "ubuntu-highmem-vm"
+pve2_ubuntu_highmem_vm_cores         = 2
+pve2_ubuntu_highmem_vm_memory        = 8192
+pve2_ubuntu_highmem_vm_disk_size     = 20
+pve2_ubuntu_highmem_vm_mac_addresses = ["52:54:00:0d:69:41"]
 
 # Talos VMs on pve2 (disabled)
 pve2_talos_vm_count = 0

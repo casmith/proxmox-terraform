@@ -379,6 +379,43 @@ variable "pve2_ubuntu_vm_mac_addresses" {
   default     = []
 }
 
+# Ubuntu High-Memory VMs on pve2
+variable "pve2_ubuntu_highmem_vm_count" {
+  description = "Number of high-memory Ubuntu VMs on pve2"
+  type        = number
+  default     = 0
+}
+
+variable "pve2_ubuntu_highmem_vm_name" {
+  description = "Base name for high-memory Ubuntu VMs on pve2"
+  type        = string
+  default     = "ubuntu-highmem-vm"
+}
+
+variable "pve2_ubuntu_highmem_vm_cores" {
+  description = "Number of CPU cores for high-memory Ubuntu VMs on pve2"
+  type        = number
+  default     = 2
+}
+
+variable "pve2_ubuntu_highmem_vm_memory" {
+  description = "Memory in MB for high-memory Ubuntu VMs on pve2"
+  type        = number
+  default     = 8192
+}
+
+variable "pve2_ubuntu_highmem_vm_disk_size" {
+  description = "Disk size in GB for high-memory Ubuntu VMs on pve2"
+  type        = number
+  default     = 20
+}
+
+variable "pve2_ubuntu_highmem_vm_mac_addresses" {
+  description = "MAC addresses for high-memory Ubuntu VMs on pve2"
+  type        = list(string)
+  default     = []
+}
+
 # Talos VMs on pve2
 variable "pve2_talos_vm_count" {
   description = "Number of Talos VMs on pve2"
