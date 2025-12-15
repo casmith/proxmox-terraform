@@ -17,6 +17,7 @@
     template_ids:
       proxmox-01: 9000
       proxmox-02: 9100
+      proxmox-03: 9200
 
   tasks:
     - name: Set template ID for this node
@@ -127,6 +128,7 @@
     template_ids:
       proxmox-01: 9001
       proxmox-02: 9101
+      proxmox-03: 9201
 
   tasks:
     - name: Set template ID for this node

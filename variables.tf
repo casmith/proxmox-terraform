@@ -587,3 +587,290 @@ variable "pve2_freebsd_vm_tags" {
   type        = string
   default     = "terraform;freebsd"
 }
+
+# ============================================================================
+# pve3 Configuration
+# ============================================================================
+
+# Template IDs
+variable "pve3_ubuntu_template_id" {
+  description = "Ubuntu template ID on pve3"
+  type        = number
+  default     = 9200
+}
+
+variable "pve3_talos_template_id" {
+  description = "Talos template ID on pve3"
+  type        = number
+  default     = 9201
+}
+
+variable "pve3_windows_template_id" {
+  description = "Windows template ID on pve3"
+  type        = number
+  default     = 9202
+}
+
+variable "pve3_freebsd_template_id" {
+  description = "FreeBSD template ID on pve3"
+  type        = number
+  default     = 9203
+}
+
+# Ubuntu VMs on pve3
+variable "pve3_ubuntu_vm_count" {
+  description = "Number of Ubuntu VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_ubuntu_vm_name" {
+  description = "Base name for Ubuntu VMs on pve3"
+  type        = string
+  default     = "ubuntu-vm"
+}
+
+variable "pve3_ubuntu_vm_cores" {
+  description = "CPU cores for Ubuntu VMs on pve3"
+  type        = number
+  default     = 2
+}
+
+variable "pve3_ubuntu_vm_memory" {
+  description = "Memory in MB for Ubuntu VMs on pve3"
+  type        = number
+  default     = 2048
+}
+
+variable "pve3_ubuntu_vm_disk_size" {
+  description = "Disk size in GB for Ubuntu VMs on pve3"
+  type        = number
+  default     = 20
+}
+
+variable "pve3_ubuntu_vm_user" {
+  description = "Default user for Ubuntu VMs on pve3"
+  type        = string
+  default     = "ubuntu"
+}
+
+variable "pve3_ubuntu_vm_tags" {
+  description = "Tags for Ubuntu VMs on pve3"
+  type        = string
+  default     = "terraform;ubuntu"
+}
+
+variable "pve3_ubuntu_vm_mac_addresses" {
+  description = "MAC addresses for Ubuntu VMs on pve3"
+  type        = list(string)
+  default     = []
+}
+
+# Ubuntu High-Memory VMs on pve3
+variable "pve3_ubuntu_highmem_vm_count" {
+  description = "Number of high-memory Ubuntu VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_ubuntu_highmem_vm_name" {
+  description = "Base name for high-memory Ubuntu VMs on pve3"
+  type        = string
+  default     = "ubuntu-highmem-vm"
+}
+
+variable "pve3_ubuntu_highmem_vm_cores" {
+  description = "Number of CPU cores for high-memory Ubuntu VMs on pve3"
+  type        = number
+  default     = 2
+}
+
+variable "pve3_ubuntu_highmem_vm_memory" {
+  description = "Memory in MB for high-memory Ubuntu VMs on pve3"
+  type        = number
+  default     = 8192
+}
+
+variable "pve3_ubuntu_highmem_vm_disk_size" {
+  description = "Disk size in GB for high-memory Ubuntu VMs on pve3"
+  type        = number
+  default     = 20
+}
+
+variable "pve3_ubuntu_highmem_vm_mac_addresses" {
+  description = "MAC addresses for high-memory Ubuntu VMs on pve3"
+  type        = list(string)
+  default     = []
+}
+
+# Talos VMs on pve3
+variable "pve3_talos_vm_count" {
+  description = "Number of Talos VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_talos_vm_name" {
+  description = "Base name for Talos VMs on pve3"
+  type        = string
+  default     = "talos-vm"
+}
+
+variable "pve3_talos_vm_cores" {
+  description = "CPU cores for Talos VMs on pve3"
+  type        = number
+  default     = 4
+}
+
+variable "pve3_talos_vm_memory" {
+  description = "Memory in MB for Talos VMs on pve3"
+  type        = number
+  default     = 4096
+}
+
+variable "pve3_talos_vm_disk_size" {
+  description = "Disk size in GB for Talos VMs on pve3"
+  type        = number
+  default     = 30
+}
+
+variable "pve3_talos_vm_tags" {
+  description = "Tags for Talos VMs on pve3"
+  type        = string
+  default     = "terraform;talos;kubernetes"
+}
+
+variable "pve3_talos_vm_mac_addresses" {
+  description = "MAC addresses for Talos VMs on pve3"
+  type        = list(string)
+  default     = []
+}
+
+# Talos Sandbox VMs on pve3
+variable "pve3_talos_sandbox_vm_count" {
+  description = "Number of Talos Sandbox VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_talos_sandbox_vm_name" {
+  description = "Base name for Talos Sandbox VMs on pve3"
+  type        = string
+  default     = "talos-sandbox-pve3"
+}
+
+variable "pve3_talos_sandbox_vm_cores" {
+  description = "CPU cores for Talos Sandbox VMs on pve3"
+  type        = number
+  default     = 4
+}
+
+variable "pve3_talos_sandbox_vm_memory" {
+  description = "Memory in MB for Talos Sandbox VMs on pve3"
+  type        = number
+  default     = 4096
+}
+
+variable "pve3_talos_sandbox_vm_disk_size" {
+  description = "Disk size in GB for Talos Sandbox VMs on pve3"
+  type        = number
+  default     = 30
+}
+
+variable "pve3_talos_sandbox_vm_mac_addresses" {
+  description = "MAC addresses for Talos Sandbox VMs on pve3"
+  type        = list(string)
+  default     = []
+}
+
+variable "pve3_talos_sandbox_vm_tags" {
+  description = "Tags for Talos Sandbox VMs on pve3"
+  type        = string
+  default     = "terraform;talos;kubernetes;sandbox"
+}
+
+# Windows VMs on pve3
+variable "pve3_windows_vm_count" {
+  description = "Number of Windows VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_windows_vm_name" {
+  description = "Base name for Windows VMs on pve3"
+  type        = string
+  default     = "windows-vm"
+}
+
+variable "pve3_windows_vm_cores" {
+  description = "CPU cores for Windows VMs on pve3"
+  type        = number
+  default     = 4
+}
+
+variable "pve3_windows_vm_memory" {
+  description = "Memory in MB for Windows VMs on pve3"
+  type        = number
+  default     = 8192
+}
+
+variable "pve3_windows_vm_disk_size" {
+  description = "Disk size in GB for Windows VMs on pve3"
+  type        = number
+  default     = 60
+}
+
+variable "pve3_windows_vm_user" {
+  description = "Default user for Windows VMs on pve3"
+  type        = string
+  default     = "Administrator"
+}
+
+variable "pve3_windows_vm_tags" {
+  description = "Tags for Windows VMs on pve3"
+  type        = string
+  default     = "terraform;windows"
+}
+
+# FreeBSD VMs on pve3
+variable "pve3_freebsd_vm_count" {
+  description = "Number of FreeBSD VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_freebsd_vm_name" {
+  description = "Base name for FreeBSD VMs on pve3"
+  type        = string
+  default     = "freebsd-vm"
+}
+
+variable "pve3_freebsd_vm_cores" {
+  description = "CPU cores for FreeBSD VMs on pve3"
+  type        = number
+  default     = 2
+}
+
+variable "pve3_freebsd_vm_memory" {
+  description = "Memory in MB for FreeBSD VMs on pve3"
+  type        = number
+  default     = 2048
+}
+
+variable "pve3_freebsd_vm_disk_size" {
+  description = "Disk size in GB for FreeBSD VMs on pve3"
+  type        = number
+  default     = 20
+}
+
+variable "pve3_freebsd_vm_user" {
+  description = "Default user for FreeBSD VMs on pve3"
+  type        = string
+  default     = "freebsd"
+}
+
+variable "pve3_freebsd_vm_tags" {
+  description = "Tags for FreeBSD VMs on pve3"
+  type        = string
+  default     = "terraform;freebsd"
+}

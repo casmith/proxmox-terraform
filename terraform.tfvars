@@ -92,3 +92,31 @@ pve2_windows_vm_count = 0
 
 # FreeBSD VMs on pve2 (disabled)
 pve2_freebsd_vm_count = 0
+
+# ============================================================================
+# pve3 Node Configuration
+# ============================================================================
+
+# Template IDs on pve3 (local-lvm storage)
+pve3_ubuntu_template_id  = 9200
+pve3_talos_template_id   = 9201
+pve3_windows_template_id = 9202
+pve3_freebsd_template_id = 9203
+
+# Ubuntu VMs on pve3 (disabled)
+pve3_ubuntu_vm_count = 0
+
+# Ubuntu High-Memory VMs on pve3 (disabled)
+pve3_ubuntu_highmem_vm_count = 0
+
+# Talos VMs on pve3 (disabled)
+pve3_talos_vm_count = 0
+
+# Talos Sandbox VMs on pve3 (disabled)
+pve3_talos_sandbox_vm_count = 0
+
+# Windows VMs on pve3 (disabled)
+pve3_windows_vm_count = 0
+
+# FreeBSD VMs on pve3 (disabled)
+pve3_freebsd_vm_count = 0

@@ -80,6 +80,45 @@ output "pve2_all_vms" {
 }
 
 # ============================================================================
+# pve3 Outputs
+# ============================================================================
+
+output "pve3_ubuntu_vm_details" {
+  description = "Ubuntu VMs on pve3"
+  value       = module.pve3.ubuntu_vm_details
+}
+
+output "pve3_ubuntu_vm_ips" {
+  description = "Ubuntu VM IPs on pve3"
+  value       = module.pve3.ubuntu_vm_ips
+}
+
+output "pve3_talos_vm_details" {
+  description = "Talos VMs on pve3"
+  value       = module.pve3.talos_vm_details
+}
+
+output "pve3_talos_vm_ips" {
+  description = "Talos VM IPs on pve3"
+  value       = module.pve3.talos_vm_ips
+}
+
+output "pve3_talos_sandbox_vm_details" {
+  description = "Talos Sandbox VMs on pve3"
+  value       = module.pve3.talos_sandbox_vm_details
+}
+
+output "pve3_talos_sandbox_vm_ips" {
+  description = "Talos Sandbox VM IPs on pve3"
+  value       = module.pve3.talos_sandbox_vm_ips
+}
+
+output "pve3_all_vms" {
+  description = "All VMs on pve3"
+  value       = module.pve3.all_vms
+}
+
+# ============================================================================
 # Combined Cluster Outputs
 # ============================================================================
 
@@ -88,6 +127,7 @@ output "all_vms_by_node" {
   value = {
     pve1 = module.pve1.all_vms
     pve2 = module.pve2.all_vms
+    pve3 = module.pve3.all_vms
   }
 }
 
@@ -95,7 +135,8 @@ output "all_ubuntu_vms" {
   description = "All Ubuntu VMs across all nodes"
   value = merge(
     module.pve1.ubuntu_vm_details,
-    module.pve2.ubuntu_vm_details
+    module.pve2.ubuntu_vm_details,
+    module.pve3.ubuntu_vm_details
   )
 }
 
@@ -103,7 +144,8 @@ output "all_talos_vms" {
   description = "All Talos VMs across all nodes"
   value = merge(
     module.pve1.talos_vm_details,
-    module.pve2.talos_vm_details
+    module.pve2.talos_vm_details,
+    module.pve3.talos_vm_details
   )
 }
 
@@ -111,7 +153,8 @@ output "all_talos_sandbox_vms" {
   description = "All Talos Sandbox VMs across all nodes"
   value = merge(
     module.pve1.talos_sandbox_vm_details,
-    module.pve2.talos_sandbox_vm_details
+    module.pve2.talos_sandbox_vm_details,
+    module.pve3.talos_sandbox_vm_details
   )
 }
 
@@ -123,6 +166,9 @@ output "all_vm_ips" {
     module.pve1.talos_sandbox_vm_ips,
     module.pve2.ubuntu_vm_ips,
     module.pve2.talos_vm_ips,
-    module.pve2.talos_sandbox_vm_ips
+    module.pve2.talos_sandbox_vm_ips,
+    module.pve3.ubuntu_vm_ips,
+    module.pve3.talos_vm_ips,
+    module.pve3.talos_sandbox_vm_ips
   )
 }
