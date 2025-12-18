@@ -121,3 +121,33 @@ pve3_talos_vm_count = 0
 # Talos Sandbox VMs on pve3 (disabled)
 pve3_talos_sandbox_vm_count = 0
 
+# ============================================================================
+# pve4 Node Configuration
+# ============================================================================
+
+# Template IDs on pve4 (local-lvm storage)
+pve4_ubuntu_template_id  = 9300
+pve4_talos_template_id   = 9301
+
+# Ubuntu VMs on pve4
+pve4_ubuntu_vm_count         = 1
+pve4_ubuntu_vm_name          = "ubuntu-vm"
+pve4_ubuntu_vm_cores         = 2
+pve4_ubuntu_vm_memory        = 2048
+pve4_ubuntu_vm_disk_size     = 20
+pve4_ubuntu_vm_mac_addresses = ["52:54:00:ff:c1:cc"]
+
+# Ubuntu High-Memory VMs on pve4
+pve4_ubuntu_highmem_vm_count         = 1
+pve4_ubuntu_highmem_vm_name          = "ubuntu-highmem-vm"
+pve4_ubuntu_highmem_vm_cores         = 2
+pve4_ubuntu_highmem_vm_memory        = 8192
+pve4_ubuntu_highmem_vm_disk_size     = 20
+pve4_ubuntu_highmem_vm_mac_addresses = ["52:54:00:29:bf:af"]
+
+# Talos VMs on pve4 (disabled)
+pve4_talos_vm_count = 0
+
+# Talos Sandbox VMs on pve4 (disabled)
+pve4_talos_sandbox_vm_count = 0
+

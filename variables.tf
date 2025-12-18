@@ -465,20 +465,6 @@ variable "pve2_talos_sandbox_vm_tags" {
   default     = "terraform;talos;kubernetes;sandbox"
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # ============================================================================
 # pve3 Configuration
 # ============================================================================
@@ -495,8 +481,6 @@ variable "pve3_talos_template_id" {
   type        = number
   default     = 9201
 }
-
-
 
 # Ubuntu VMs on pve3
 variable "pve3_ubuntu_vm_count" {
@@ -669,6 +653,198 @@ variable "pve3_talos_sandbox_vm_tags" {
   type        = string
   default     = "terraform;talos;kubernetes;sandbox"
 }
+
+# ============================================================================
+# pve4 Configuration
+# ============================================================================
+
+# Template IDs
+variable "pve4_ubuntu_template_id" {
+  description = "Ubuntu template ID on pve4"
+  type        = number
+  default     = 9300
+}
+
+variable "pve4_talos_template_id" {
+  description = "Talos template ID on pve4"
+  type        = number
+  default     = 9301
+}
+
+# Ubuntu VMs on pve4
+variable "pve4_ubuntu_vm_count" {
+  description = "Number of Ubuntu VMs on pve4"
+  type        = number
+  default     = 0
+}
+
+variable "pve4_ubuntu_vm_name" {
+  description = "Base name for Ubuntu VMs on pve4"
+  type        = string
+  default     = "ubuntu-vm"
+}
+
+variable "pve4_ubuntu_vm_cores" {
+  description = "CPU cores for Ubuntu VMs on pve4"
+  type        = number
+  default     = 2
+}
+
+variable "pve4_ubuntu_vm_memory" {
+  description = "Memory in MB for Ubuntu VMs on pve4"
+  type        = number
+  default     = 2048
+}
+
+variable "pve4_ubuntu_vm_disk_size" {
+  description = "Disk size in GB for Ubuntu VMs on pve4"
+  type        = number
+  default     = 20
+}
+
+variable "pve4_ubuntu_vm_user" {
+  description = "Default user for Ubuntu VMs on pve4"
+  type        = string
+  default     = "ubuntu"
+}
+
+variable "pve4_ubuntu_vm_tags" {
+  description = "Tags for Ubuntu VMs on pve4"
+  type        = string
+  default     = "terraform;ubuntu"
+}
+
+variable "pve4_ubuntu_vm_mac_addresses" {
+  description = "MAC addresses for Ubuntu VMs on pve4"
+  type        = list(string)
+  default     = []
+}
+
+# Ubuntu High-Memory VMs on pve4
+variable "pve4_ubuntu_highmem_vm_count" {
+  description = "Number of high-memory Ubuntu VMs on pve4"
+  type        = number
+  default     = 0
+}
+
+variable "pve4_ubuntu_highmem_vm_name" {
+  description = "Base name for high-memory Ubuntu VMs on pve4"
+  type        = string
+  default     = "ubuntu-highmem-vm"
+}
+
+variable "pve4_ubuntu_highmem_vm_cores" {
+  description = "Number of CPU cores for high-memory Ubuntu VMs on pve4"
+  type        = number
+  default     = 2
+}
+
+variable "pve4_ubuntu_highmem_vm_memory" {
+  description = "Memory in MB for high-memory Ubuntu VMs on pve4"
+  type        = number
+  default     = 8192
+}
+
+variable "pve4_ubuntu_highmem_vm_disk_size" {
+  description = "Disk size in GB for high-memory Ubuntu VMs on pve4"
+  type        = number
+  default     = 20
+}
+
+variable "pve4_ubuntu_highmem_vm_mac_addresses" {
+  description = "MAC addresses for high-memory Ubuntu VMs on pve4"
+  type        = list(string)
+  default     = []
+}
+
+# Talos VMs on pve4
+variable "pve4_talos_vm_count" {
+  description = "Number of Talos VMs on pve4"
+  type        = number
+  default     = 0
+}
+
+variable "pve4_talos_vm_name" {
+  description = "Base name for Talos VMs on pve4"
+  type        = string
+  default     = "talos-vm"
+}
+
+variable "pve4_talos_vm_cores" {
+  description = "CPU cores for Talos VMs on pve4"
+  type        = number
+  default     = 4
+}
+
+variable "pve4_talos_vm_memory" {
+  description = "Memory in MB for Talos VMs on pve4"
+  type        = number
+  default     = 4096
+}
+
+variable "pve4_talos_vm_disk_size" {
+  description = "Disk size in GB for Talos VMs on pve4"
+  type        = number
+  default     = 30
+}
+
+variable "pve4_talos_vm_tags" {
+  description = "Tags for Talos VMs on pve4"
+  type        = string
+  default     = "terraform;talos;kubernetes"
+}
+
+variable "pve4_talos_vm_mac_addresses" {
+  description = "MAC addresses for Talos VMs on pve4"
+  type        = list(string)
+  default     = []
+}
+
+# Talos Sandbox VMs on pve4
+variable "pve4_talos_sandbox_vm_count" {
+  description = "Number of Talos Sandbox VMs on pve4"
+  type        = number
+  default     = 0
+}
+
+variable "pve4_talos_sandbox_vm_name" {
+  description = "Base name for Talos Sandbox VMs on pve4"
+  type        = string
+  default     = "talos-sandbox-pve4"
+}
+
+variable "pve4_talos_sandbox_vm_cores" {
+  description = "CPU cores for Talos Sandbox VMs on pve4"
+  type        = number
+  default     = 4
+}
+
+variable "pve4_talos_sandbox_vm_memory" {
+  description = "Memory in MB for Talos Sandbox VMs on pve4"
+  type        = number
+  default     = 4096
+}
+
+variable "pve4_talos_sandbox_vm_disk_size" {
+  description = "Disk size in GB for Talos Sandbox VMs on pve4"
+  type        = number
+  default     = 30
+}
+
+variable "pve4_talos_sandbox_vm_mac_addresses" {
+  description = "MAC addresses for Talos Sandbox VMs on pve4"
+  type        = list(string)
+  default     = []
+}
+
+variable "pve4_talos_sandbox_vm_tags" {
+  description = "Tags for Talos Sandbox VMs on pve4"
+  type        = string
+  default     = "terraform;talos;kubernetes;sandbox"
+}
+
+
+
 
 
 

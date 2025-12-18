@@ -18,6 +18,7 @@
       proxmox-01: 9000
       proxmox-02: 9100
       proxmox-03: 9200
+      proxmox-04: 9300
 
   tasks:
     - name: Set template ID for this node
@@ -129,6 +130,7 @@
       proxmox-01: 9001
       proxmox-02: 9101
       proxmox-03: 9201
+      proxmox-04: 9301
 
   tasks:
     - name: Set template ID for this node
@@ -243,6 +245,7 @@
       proxmox-01: 9002
       proxmox-02: 9102
       proxmox-03: 9202
+      proxmox-04: 9302
 
   tasks:
     - name: Set template ID for this node
@@ -345,6 +348,6 @@
           - "============================================"
           - ""
           - "Templates created:"
-          - "  {% if inventory_hostname == 'proxmox-01' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002{% elif inventory_hostname == 'proxmox-02' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102{% elif inventory_hostname == 'proxmox-03' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202{% endif %}"
+          - "  {% if inventory_hostname == 'proxmox-01' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002{% elif inventory_hostname == 'proxmox-02' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102{% elif inventory_hostname == 'proxmox-03' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202{% elif inventory_hostname == 'proxmox-04' %}Ubuntu: 9300, Talos: 9301, Arch Linux: 9302{% endif %}"
           - ""
           - "Ready to use with Terraform!"

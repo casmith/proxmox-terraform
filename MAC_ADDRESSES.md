@@ -18,14 +18,15 @@ This file tracks which MAC addresses are assigned to which VMs.
 | 52:54:00:0d:69:41  | pve2-ubuntu-highmem-vm-01  | pve2 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.41   |
 | 52:54:00:e5:d5:f4  | pve3-ubuntu-vm-01          | pve3 | Ubuntu 24.04 LTS (2GB RAM)      | 192.168.10.42   |
 | 52:54:00:e9:c8:5a  | pve3-ubuntu-highmem-vm-01  | pve3 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.43   |
+| 52:54:00:ff:c1:cc  | pve4-ubuntu-vm-01          | pve4 | Ubuntu 24.04 LTS (2GP RAM)      | 192.168.10.45   | 
+| 52:54:00:29:bf:af  | pve4-ubuntu-highmem-vm-01  | pve4 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.46   |
+
 
 ## Available MAC Addresses
 
 The following MAC addresses are available for future VMs:
 
 ```
-52:54:00:ff:c1:cc - 192.168.10.45
-52:54:00:29:bf:af - 192.168.10.46
 52:54:00:62:80:ec - 192.168.10.47
 52:54:00:f8:69:f9 - 192.168.10.48
 52:54:00:ed:b7:ca - 192.168.10.49

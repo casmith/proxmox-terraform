@@ -175,3 +175,60 @@ module "pve3" {
 
 
 }
+
+
+# ============================================================================
+# pve4 Node Module
+# ============================================================================
+
+module "pve4" {
+  source = "./nodes/pve4"
+
+  # Shared configuration
+  proxmox_node      = "pve4"
+  vm_storage        = var.vm_storage
+  vm_network_bridge = var.vm_network_bridge
+  vm_ip_address     = var.vm_ip_address
+  vm_gateway        = var.vm_gateway
+  ssh_keys          = local.ssh_keys
+
+  # Template IDs (node-specific)
+  ubuntu_template_id  = var.pve4_ubuntu_template_id
+  talos_template_id   = var.pve4_talos_template_id
+
+  # Ubuntu VM configuration
+  ubuntu_vm_count         = var.pve4_ubuntu_vm_count
+  ubuntu_vm_name          = var.pve4_ubuntu_vm_name
+  ubuntu_vm_cores         = var.pve4_ubuntu_vm_cores
+  ubuntu_vm_memory        = var.pve4_ubuntu_vm_memory
+  ubuntu_vm_disk_size     = var.pve4_ubuntu_vm_disk_size
+  ubuntu_vm_user          = var.pve4_ubuntu_vm_user
+  ubuntu_vm_tags          = var.pve4_ubuntu_vm_tags
+  ubuntu_vm_mac_addresses = var.pve4_ubuntu_vm_mac_addresses
+
+  # Ubuntu High-Memory VM configuration
+  ubuntu_highmem_vm_count         = var.pve4_ubuntu_highmem_vm_count
+  ubuntu_highmem_vm_name          = var.pve4_ubuntu_highmem_vm_name
+  ubuntu_highmem_vm_cores         = var.pve4_ubuntu_highmem_vm_cores
+  ubuntu_highmem_vm_memory        = var.pve4_ubuntu_highmem_vm_memory
+  ubuntu_highmem_vm_disk_size     = var.pve4_ubuntu_highmem_vm_disk_size
+  ubuntu_highmem_vm_mac_addresses = var.pve4_ubuntu_highmem_vm_mac_addresses
+
+  # Talos VM configuration
+  talos_vm_count         = var.pve4_talos_vm_count
+  talos_vm_name          = var.pve4_talos_vm_name
+  talos_vm_cores         = var.pve4_talos_vm_cores
+  talos_vm_memory        = var.pve4_talos_vm_memory
+  talos_vm_disk_size     = var.pve4_talos_vm_disk_size
+  talos_vm_tags          = var.pve4_talos_vm_tags
+  talos_vm_mac_addresses = var.pve4_talos_vm_mac_addresses
+
+  # Talos Sandbox VM configuration
+  talos_sandbox_vm_count         = var.pve4_talos_sandbox_vm_count
+  talos_sandbox_vm_name          = var.pve4_talos_sandbox_vm_name
+  talos_sandbox_vm_cores         = var.pve4_talos_sandbox_vm_cores
+  talos_sandbox_vm_memory        = var.pve4_talos_sandbox_vm_memory
+  talos_sandbox_vm_disk_size     = var.pve4_talos_sandbox_vm_disk_size
+  talos_sandbox_vm_mac_addresses = var.pve4_talos_sandbox_vm_mac_addresses
+  talos_sandbox_vm_tags          = var.pve4_talos_sandbox_vm_tags
+}
