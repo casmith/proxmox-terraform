@@ -17,10 +17,11 @@ module "pve1" {
   ssh_keys          = local.ssh_keys
 
   # Template IDs (node-specific, defined in nodes/pve1/terraform.tfvars)
-  ubuntu_template_id  = var.pve1_ubuntu_template_id
-  talos_template_id   = var.pve1_talos_template_id
-  windows_template_id = var.pve1_windows_template_id
-  freebsd_template_id = var.pve1_freebsd_template_id
+  ubuntu_template_id    = var.pve1_ubuntu_template_id
+  talos_template_id     = var.pve1_talos_template_id
+  archlinux_template_id = var.pve1_archlinux_template_id
+  windows_template_id   = var.pve1_windows_template_id
+  freebsd_template_id   = var.pve1_freebsd_template_id
 
   # Ubuntu VM configuration
   ubuntu_vm_count         = var.pve1_ubuntu_vm_count
@@ -31,6 +32,16 @@ module "pve1" {
   ubuntu_vm_user          = var.pve1_ubuntu_vm_user
   ubuntu_vm_tags          = var.pve1_ubuntu_vm_tags
   ubuntu_vm_mac_addresses = var.pve1_ubuntu_vm_mac_addresses
+
+  # Arch Linux VM configuration
+  archlinux_vm_count         = var.pve1_archlinux_vm_count
+  archlinux_vm_name          = var.pve1_archlinux_vm_name
+  archlinux_vm_cores         = var.pve1_archlinux_vm_cores
+  archlinux_vm_memory        = var.pve1_archlinux_vm_memory
+  archlinux_vm_disk_size     = var.pve1_archlinux_vm_disk_size
+  archlinux_vm_user          = var.pve1_archlinux_vm_user
+  archlinux_vm_tags          = var.pve1_archlinux_vm_tags
+  archlinux_vm_mac_addresses = var.pve1_archlinux_vm_mac_addresses
 
   # Talos VM configuration
   talos_vm_count         = var.pve1_talos_vm_count

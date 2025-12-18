@@ -5,10 +5,11 @@
 proxmox_node = "pve1"
 
 # Template IDs for pve1 (local-lvm storage)
-ubuntu_template_id = 9000
-talos_template_id  = 9001
-windows_template_id = 9002
-freebsd_template_id = 9003
+ubuntu_template_id   = 9000
+talos_template_id    = 9001
+archlinux_template_id = 9002
+windows_template_id   = 9003
+freebsd_template_id   = 9004
 
 # Ubuntu VMs on pve1
 ubuntu_vm_count     = 2
@@ -16,6 +17,13 @@ ubuntu_vm_name      = "ubuntu-vm"
 ubuntu_vm_cores     = 2
 ubuntu_vm_memory    = 2048
 ubuntu_vm_disk_size = 20
+
+# Arch Linux VMs on pve1
+archlinux_vm_count     = 1
+archlinux_vm_name      = "arch-vm"
+archlinux_vm_cores     = 2
+archlinux_vm_memory    = 2048
+archlinux_vm_disk_size = 20
 
 # Talos VMs on pve1
 talos_vm_count     = 2

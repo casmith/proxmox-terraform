@@ -1,0 +1,138 @@
+---
+- name: Create Arch Linux Template with QEMU Guest Agent on Proxmox
+  hosts: "{{ target_hosts | default('proxmox_cluster') }}"
+  gather_facts: no
+  vars:
+    # Default template IDs - override with -e for different nodes
+    # pve1: 9002, pve2: 9102, pve3: 9202, etc.
+    template_id: "{{ archlinux_template_id | default(9002) }}"
+    template_name: "archlinux-cloudinit-template"
+    storage: "local-lvm"  # Using local-lvm for per-node templates
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    # Arch Linux official cloud image - updated monthly
+    # Using direct mirror instead of geo-redirect for better reliability
+    # Alternative: https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
+    cloud_image_url: "https://mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Download Arch Linux cloud image
+      get_url:
+        url: "{{ cloud_image_url }}"
+        dest: /tmp/archlinux-cloudimg.qcow2
+        mode: '0644'
+        timeout: 300
+      when: vm_exists.rc != 0
+
+    - name: Create base VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      register: create_result
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/archlinux-cloudimg.qcow2
+        {{ storage }}
+      register: import_result
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach imported disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot c
+        --bootdisk scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded image
+      file:
+        path: /tmp/archlinux-cloudimg.qcow2
+        state: absent
+      when: vm_exists.rc != 0
+
+    - name: Wait for cluster configuration sync
+      pause:
+        seconds: 5
+        prompt: "Waiting for cluster configuration to sync across all nodes..."
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Template {{ template_id }} created successfully!"
+          - "============================================"
+          - ""
+          - "Template includes:"
+          - "  ✓ Arch Linux (rolling release)"
+          - "  ✓ Cloud-init enabled"
+          - "  ✓ QEMU guest agent pre-installed"
+          - "  ✓ OpenSSH server pre-installed"
+          - "  ✓ Serial console"
+          - "  ✓ Snippets storage configured"
+          - "  ✓ Stored on local-lvm storage"
+          - ""
+          - "Ready to use with Terraform!"
+          - "The official Arch cloud image includes:"
+          - "  - cloud-init for user/SSH key provisioning"
+          - "  - qemu-guest-agent for IP detection"
+          - "  - openssh for remote access"
+          - ""
+          - "Note: Arch Linux is a rolling release distribution."
+          - "Consider running 'pacman -Syu' on VMs to keep them updated."

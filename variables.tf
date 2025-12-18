@@ -68,16 +68,22 @@ variable "pve1_talos_template_id" {
   default     = 9001
 }
 
+variable "pve1_archlinux_template_id" {
+  description = "Arch Linux template ID on pve1"
+  type        = number
+  default     = 9002
+}
+
 variable "pve1_windows_template_id" {
   description = "Windows template ID on pve1"
   type        = number
-  default     = 9002
+  default     = 9003
 }
 
 variable "pve1_freebsd_template_id" {
   description = "FreeBSD template ID on pve1"
   type        = number
-  default     = 9003
+  default     = 9004
 }
 
 # Ubuntu VMs on pve1
@@ -125,6 +131,55 @@ variable "pve1_ubuntu_vm_tags" {
 
 variable "pve1_ubuntu_vm_mac_addresses" {
   description = "MAC addresses for Ubuntu VMs on pve1"
+  type        = list(string)
+  default     = []
+}
+
+# Arch Linux VMs on pve1
+variable "pve1_archlinux_vm_count" {
+  description = "Number of Arch Linux VMs on pve1"
+  type        = number
+  default     = 0
+}
+
+variable "pve1_archlinux_vm_name" {
+  description = "Base name for Arch Linux VMs on pve1"
+  type        = string
+  default     = "arch-vm"
+}
+
+variable "pve1_archlinux_vm_cores" {
+  description = "CPU cores for Arch Linux VMs on pve1"
+  type        = number
+  default     = 2
+}
+
+variable "pve1_archlinux_vm_memory" {
+  description = "Memory in MB for Arch Linux VMs on pve1"
+  type        = number
+  default     = 2048
+}
+
+variable "pve1_archlinux_vm_disk_size" {
+  description = "Disk size in GB for Arch Linux VMs on pve1"
+  type        = number
+  default     = 20
+}
+
+variable "pve1_archlinux_vm_user" {
+  description = "Default user for Arch Linux VMs on pve1"
+  type        = string
+  default     = "arch"
+}
+
+variable "pve1_archlinux_vm_tags" {
+  description = "Tags for Arch Linux VMs on pve1"
+  type        = string
+  default     = "terraform;archlinux"
+}
+
+variable "pve1_archlinux_vm_mac_addresses" {
+  description = "MAC addresses for Arch Linux VMs on pve1"
   type        = list(string)
   default     = []
 }

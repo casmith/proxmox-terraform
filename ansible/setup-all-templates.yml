@@ -227,6 +227,112 @@
         - /tmp/talos-nocloud-amd64.raw
       when: vm_exists.rc != 0
 
+- name: Create Arch Linux Templates on All Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    template_name: "archlinux-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    # Using direct mirror instead of geo-redirect for better reliability
+    cloud_image_url: "https://mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+    # Template ID mapping by node
+    template_ids:
+      proxmox-01: 9002
+      proxmox-02: 9102
+      proxmox-03: 9202
+
+  tasks:
+    - name: Set template ID for this node
+      set_fact:
+        template_id: "{{ template_ids[inventory_hostname] }}"
+
+    - name: Check if Arch Linux template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if Arch Linux template already exists
+      debug:
+        msg: "Arch Linux template {{ template_id }} already exists on {{ inventory_hostname }}, skipping"
+      when: vm_exists.rc == 0
+
+    - name: Download Arch Linux cloud image
+      get_url:
+        url: "{{ cloud_image_url }}"
+        dest: /tmp/archlinux-cloudimg.qcow2
+        mode: '0644'
+        timeout: 300
+      when: vm_exists.rc != 0
+
+    - name: Create base Arch Linux VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        /tmp/archlinux-cloudimg.qcow2
+        {{ storage }}
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach imported disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot c
+        --bootdisk scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Clean up downloaded Arch Linux image
+      file:
+        path: /tmp/archlinux-cloudimg.qcow2
+        state: absent
+      when: vm_exists.rc != 0
+
 - name: Display Summary
   hosts: proxmox_cluster
   gather_facts: no
@@ -239,6 +345,6 @@
           - "============================================"
           - ""
           - "Templates created:"
-          - "  {% if inventory_hostname == 'proxmox-01' %}Ubuntu: 9000, Talos: 9001{% elif inventory_hostname == 'proxmox-02' %}Ubuntu: 9100, Talos: 9101{% endif %}"
+          - "  {% if inventory_hostname == 'proxmox-01' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002{% elif inventory_hostname == 'proxmox-02' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102{% elif inventory_hostname == 'proxmox-03' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202{% endif %}"
           - ""
           - "Ready to use with Terraform!"

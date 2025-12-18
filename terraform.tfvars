@@ -15,10 +15,11 @@ vm_gateway        = "192.168.10.1"
 # ============================================================================
 
 # Template IDs on pve1 (local-lvm storage)
-pve1_ubuntu_template_id  = 9000
-pve1_talos_template_id   = 9001
-pve1_windows_template_id = 9002
-pve1_freebsd_template_id = 9003
+pve1_ubuntu_template_id    = 9000
+pve1_talos_template_id     = 9001
+pve1_archlinux_template_id = 9002
+pve1_windows_template_id   = 9003
+pve1_freebsd_template_id   = 9004
 
 # Ubuntu VMs on pve1
 pve1_ubuntu_vm_count         = 2
@@ -27,6 +28,13 @@ pve1_ubuntu_vm_cores         = 2
 pve1_ubuntu_vm_memory        = 2048
 pve1_ubuntu_vm_disk_size     = 20
 pve1_ubuntu_vm_mac_addresses = ["52:54:00:06:d2:7f", "52:54:00:33:3f:a8"]
+
+# Arch Linux VMs on pve1
+pve1_archlinux_vm_count     = 1
+pve1_archlinux_vm_name      = "arch-vm"
+pve1_archlinux_vm_cores     = 2
+pve1_archlinux_vm_memory    = 2048
+pve1_archlinux_vm_disk_size = 20
 
 # Talos VMs on pve1
 pve1_talos_vm_count         = 2

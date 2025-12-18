@@ -135,6 +135,12 @@ ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-0
 # Create Talos template on pve2 (ID 9101)
 ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-02 -e talos_template_id=9101
 
+# Create Arch Linux template on pve1 (ID 9002)
+ansible-playbook ansible/setup-archlinux-template.yml -e target_hosts=proxmox-01
+
+# Create Arch Linux template on pve2 (ID 9102)
+ansible-playbook ansible/setup-archlinux-template.yml -e target_hosts=proxmox-02 -e archlinux_template_id=9102
+
 # Create Windows 11 template (requires manual steps - see WINDOWS_SETUP_GUIDE.md)
 ansible-playbook ansible/setup-windows-template.yml
 
@@ -320,9 +326,10 @@ The `modules/proxmox-vm` module supports:
 Templates are stored on local-lvm storage on each node for performance and reliability. Each node has its own set of templates with unique IDs:
 
 **Template ID Schema:**
-- **pve1**: Ubuntu=9000, Talos=9001, Windows=9002
-- **pve2**: Ubuntu=9100, Talos=9101, Windows=9102
-- **Future nodes**: Increment by 100 per node (pve3 would use 9200, 9201, etc.)
+- **pve1**: Ubuntu=9000, Talos=9001, Arch Linux=9002, Windows=9003
+- **pve2**: Ubuntu=9100, Talos=9101, Arch Linux=9102, Windows=9103
+- **pve3**: Ubuntu=9200, Talos=9201, Arch Linux=9202, Windows=9203
+- **Future nodes**: Increment by 100 per node
 
 **Creating Templates:**
 
@@ -333,11 +340,17 @@ ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-0
 # Create Talos template on pve1 (ID 9001)
 ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-01
 
+# Create Arch Linux template on pve1 (ID 9002)
+ansible-playbook ansible/setup-archlinux-template.yml -e target_hosts=proxmox-01
+
 # Create Ubuntu template on pve2 (ID 9100)
 ansible-playbook ansible/setup-ubuntu2404-template.yml -e target_hosts=proxmox-02 -e ubuntu_template_id=9100
 
 # Create Talos template on pve2 (ID 9101)
 ansible-playbook ansible/setup-talos-template.yml -e target_hosts=proxmox-02 -e talos_template_id=9101
+
+# Create Arch Linux template on pve2 (ID 9102)
+ansible-playbook ansible/setup-archlinux-template.yml -e target_hosts=proxmox-02 -e archlinux_template_id=9102
 ```
 
 **Why Per-Node Templates?**

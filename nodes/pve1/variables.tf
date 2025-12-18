@@ -53,6 +53,11 @@ variable "talos_template_id" {
   type        = number
 }
 
+variable "archlinux_template_id" {
+  description = "ID of the Arch Linux template on this node"
+  type        = number
+}
+
 variable "windows_template_id" {
   description = "ID of the Windows template on this node"
   type        = number
@@ -106,6 +111,53 @@ variable "ubuntu_vm_tags" {
 
 variable "ubuntu_vm_mac_addresses" {
   description = "MAC addresses for Ubuntu VMs"
+  type        = list(string)
+  default     = []
+}
+
+# ============================================================================
+# Arch Linux VM Configuration
+# ============================================================================
+
+variable "archlinux_vm_count" {
+  description = "Number of Arch Linux VMs to create on this node"
+  type        = number
+}
+
+variable "archlinux_vm_name" {
+  description = "Base name for Arch Linux VMs"
+  type        = string
+}
+
+variable "archlinux_vm_cores" {
+  description = "Number of CPU cores for Arch Linux VMs"
+  type        = number
+}
+
+variable "archlinux_vm_memory" {
+  description = "Memory in MB for Arch Linux VMs"
+  type        = number
+}
+
+variable "archlinux_vm_disk_size" {
+  description = "Disk size in GB for Arch Linux VMs"
+  type        = number
+}
+
+variable "archlinux_vm_user" {
+  description = "Default user for Arch Linux VMs"
+  type        = string
+  default     = "arch"
+}
+
+variable "archlinux_vm_tags" {
+  description = "Tags for Arch Linux VMs (semicolon separated)"
+  type        = string
+  default     = "terraform;archlinux"
+}
+
+variable "archlinux_vm_mac_addresses" {
+  description = "MAC addresses for Arch Linux VMs"
   type        = list(string)
   default     = []
 }
