@@ -11,19 +11,19 @@ This file tracks which MAC addresses are assigned to which VMs.
 | 52:54:00:06:d2:7f  | pve1-ubuntu-vm-01          | pve1 | Ubuntu 24.04 LTS                | 192.168.10.35   |
 | 52:54:00:33:3f:a8  | pve1-ubuntu-vm-02          | pve1 | Ubuntu 24.04 LTS                | 192.168.10.36   |
 | 52:54:00:5a:52:e9  | pve1-talos-sandbox-pve1-01 | pve1 | Talos sandbox/experimental      | 192.168.10.37   |
+| 52:54:00:cd:0f:61  | pve2-talos-vm-01           | pve2 | Talos Kubernetes node           | 192.168.10.44   |
 | 52:54:00:0c:08:a7  | pve2-talos-sandbox-pve2-01 | pve2 | Talos sandbox/experimental      | 192.168.10.38   |
 | 52:54:00:9c:30:b8  | pve2-talos-sandbox-pve2-02 | pve2 | Talos sandbox/experimental      | 192.168.10.39   |
 | 52:54:00:36:34:cb  | pve2-ubuntu-vm-01          | pve2 | Ubuntu 24.04 LTS (2GB RAM)      | 192.168.10.40   |
 | 52:54:00:0d:69:41  | pve2-ubuntu-highmem-vm-01  | pve2 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.41   |
+| 52:54:00:e5:d5:f4  | pve3-ubuntu-vm-01          | pve3 | Ubuntu 24.04 LTS (2GB RAM)      | 192.168.10.42   |
+| 52:54:00:e9:c8:5a  | pve3-ubuntu-highmem-vm-01  | pve3 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.43   |
 
 ## Available MAC Addresses
 
 The following MAC addresses are available for future VMs:
 
 ```
-52:54:00:e5:d5:f4 - 192.168.10.42
-52:54:00:e9:c8:5a - 192.168.10.43
-52:54:00:cd:0f:61 - 192.168.10.44
 52:54:00:ff:c1:cc - 192.168.10.45
 52:54:00:29:bf:af - 192.168.10.46
 52:54:00:62:80:ec - 192.168.10.47
@@ -50,7 +50,6 @@ The following MAC addresses are available for future VMs:
 52:54:00:5a:de:f1 - 192.168.10.68
 52:54:00:b1:13:77 - 192.168.10.69
 52:54:00:04:c6:23 - 192.168.10.70
-
 ```
 
 ## Notes
