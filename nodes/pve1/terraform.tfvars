@@ -5,11 +5,9 @@
 proxmox_node = "pve1"
 
 # Template IDs for pve1 (local-lvm storage)
-ubuntu_template_id   = 9000
-talos_template_id    = 9001
+ubuntu_template_id    = 9000
+talos_template_id     = 9001
 archlinux_template_id = 9002
-windows_template_id   = 9003
-freebsd_template_id   = 9004
 
 # Ubuntu VMs on pve1
 ubuntu_vm_count     = 2
@@ -39,17 +37,3 @@ talos_sandbox_vm_cores         = 4
 talos_sandbox_vm_memory        = 4096
 talos_sandbox_vm_disk_size     = 30
 talos_sandbox_vm_mac_addresses = ["BC:24:11:51:59:8B"]
-
-# Windows VMs on pve1 (disabled by default)
-windows_vm_count     = 0
-windows_vm_name      = "windows-vm"
-windows_vm_cores     = 4
-windows_vm_memory    = 8192
-windows_vm_disk_size = 60
-
-# FreeBSD VMs on pve1 (disabled by default)
-freebsd_vm_count     = 0
-freebsd_vm_name      = "freebsd-vm"
-freebsd_vm_cores     = 2
-freebsd_vm_memory    = 2048
-freebsd_vm_disk_size = 20

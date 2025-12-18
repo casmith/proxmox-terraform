@@ -18,8 +18,6 @@ vm_gateway        = "192.168.10.1"
 pve1_ubuntu_template_id    = 9000
 pve1_talos_template_id     = 9001
 pve1_archlinux_template_id = 9002
-pve1_windows_template_id   = 9003
-pve1_freebsd_template_id   = 9004
 
 # Ubuntu VMs on pve1
 pve1_ubuntu_vm_count         = 2
@@ -52,12 +50,6 @@ pve1_talos_sandbox_vm_memory        = 4096
 pve1_talos_sandbox_vm_disk_size     = 30
 pve1_talos_sandbox_vm_mac_addresses = ["52:54:00:5a:52:e9"]
 
-# Windows VMs on pve1 (disabled)
-pve1_windows_vm_count = 0
-
-# FreeBSD VMs on pve1 (disabled)
-pve1_freebsd_vm_count = 0
-
 # ============================================================================
 # pve2 Node Configuration
 # ============================================================================
@@ -65,8 +57,6 @@ pve1_freebsd_vm_count = 0
 # Template IDs on pve2 (local-lvm storage)
 pve2_ubuntu_template_id  = 9100
 pve2_talos_template_id   = 9101
-pve2_windows_template_id = 9102
-pve2_freebsd_template_id = 9103
 
 # Ubuntu VMs on pve2
 pve2_ubuntu_vm_count         = 1
@@ -101,12 +91,6 @@ pve2_talos_sandbox_vm_memory        = 4096
 pve2_talos_sandbox_vm_disk_size     = 30
 pve2_talos_sandbox_vm_mac_addresses = ["52:54:00:0c:08:a7", "52:54:00:9c:30:b8"]
 
-# Windows VMs on pve2 (disabled)
-pve2_windows_vm_count = 0
-
-# FreeBSD VMs on pve2 (disabled)
-pve2_freebsd_vm_count = 0
-
 # ============================================================================
 # pve3 Node Configuration
 # ============================================================================
@@ -114,8 +98,6 @@ pve2_freebsd_vm_count = 0
 # Template IDs on pve3 (local-lvm storage)
 pve3_ubuntu_template_id  = 9200
 pve3_talos_template_id   = 9201
-pve3_windows_template_id = 9202
-pve3_freebsd_template_id = 9203
 
 # Ubuntu VMs on pve3
 pve3_ubuntu_vm_count         = 1
@@ -139,8 +121,3 @@ pve3_talos_vm_count = 0
 # Talos Sandbox VMs on pve3 (disabled)
 pve3_talos_sandbox_vm_count = 0
 
-# Windows VMs on pve3 (disabled)
-pve3_windows_vm_count = 0
-
-# FreeBSD VMs on pve3 (disabled)
-pve3_freebsd_vm_count = 0

@@ -53,16 +53,6 @@ variable "talos_template_id" {
   type        = number
 }
 
-variable "windows_template_id" {
-  description = "ID of the Windows template on this node"
-  type        = number
-}
-
-variable "freebsd_template_id" {
-  description = "ID of the FreeBSD template on this node"
-  type        = number
-}
-
 # ============================================================================
 # Ubuntu VM Configuration
 # ============================================================================
@@ -229,86 +219,4 @@ variable "talos_sandbox_vm_tags" {
   description = "Tags for Talos Sandbox VMs (semicolon separated)"
   type        = string
   default     = "terraform;talos;kubernetes;sandbox"
-}
-
-# ============================================================================
-# Windows VM Configuration
-# ============================================================================
-
-variable "windows_vm_count" {
-  description = "Number of Windows VMs to create on this node"
-  type        = number
-}
-
-variable "windows_vm_name" {
-  description = "Base name for Windows VMs"
-  type        = string
-}
-
-variable "windows_vm_cores" {
-  description = "Number of CPU cores for Windows VMs"
-  type        = number
-}
-
-variable "windows_vm_memory" {
-  description = "Memory in MB for Windows VMs"
-  type        = number
-}
-
-variable "windows_vm_disk_size" {
-  description = "Disk size in GB for Windows VMs"
-  type        = number
-}
-
-variable "windows_vm_user" {
-  description = "Default user for Windows VMs"
-  type        = string
-  default     = "Administrator"
-}
-
-variable "windows_vm_tags" {
-  description = "Tags for Windows VMs (semicolon separated)"
-  type        = string
-  default     = "terraform;windows"
-}
-
-# ============================================================================
-# FreeBSD VM Configuration
-# ============================================================================
-
-variable "freebsd_vm_count" {
-  description = "Number of FreeBSD VMs to create on this node"
-  type        = number
-}
-
-variable "freebsd_vm_name" {
-  description = "Base name for FreeBSD VMs"
-  type        = string
-}
-
-variable "freebsd_vm_cores" {
-  description = "Number of CPU cores for FreeBSD VMs"
-  type        = number
-}
-
-variable "freebsd_vm_memory" {
-  description = "Memory in MB for FreeBSD VMs"
-  type        = number
-}
-
-variable "freebsd_vm_disk_size" {
-  description = "Disk size in GB for FreeBSD VMs"
-  type        = number
-}
-
-variable "freebsd_vm_user" {
-  description = "Default user for FreeBSD VMs"
-  type        = string
-  default     = "freebsd"
-}
-
-variable "freebsd_vm_tags" {
-  description = "Tags for FreeBSD VMs (semicolon separated)"
-  type        = string
-  default     = "terraform;freebsd"
 }
