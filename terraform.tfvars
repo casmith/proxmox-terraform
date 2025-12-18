@@ -76,8 +76,14 @@ pve2_ubuntu_highmem_vm_memory        = 8192
 pve2_ubuntu_highmem_vm_disk_size     = 20
 pve2_ubuntu_highmem_vm_mac_addresses = ["52:54:00:0d:69:41"]
 
-# Talos VMs on pve2 (disabled)
-pve2_talos_vm_count = 0
+# Talos VMs on pve2
+pve2_talos_vm_count         = 1
+pve2_talos_vm_name          = "talos-vm"
+pve2_talos_vm_cores         = 4
+pve2_talos_vm_memory        = 4096
+pve2_talos_vm_disk_size     = 30
+pve2_talos_vm_mac_addresses = ["52:54:00:cd:0f:61"]
+
 
 # Talos Sandbox VMs on pve2
 pve2_talos_sandbox_vm_count         = 2
@@ -103,11 +109,21 @@ pve3_talos_template_id   = 9201
 pve3_windows_template_id = 9202
 pve3_freebsd_template_id = 9203
 
-# Ubuntu VMs on pve3 (disabled)
-pve3_ubuntu_vm_count = 0
+# Ubuntu VMs on pve3
+pve3_ubuntu_vm_count         = 1
+pve3_ubuntu_vm_name          = "ubuntu-vm"
+pve3_ubuntu_vm_cores         = 2
+pve3_ubuntu_vm_memory        = 2048
+pve3_ubuntu_vm_disk_size     = 20
+pve3_ubuntu_vm_mac_addresses = ["52:54:00:e9:c8:5a"]
 
-# Ubuntu High-Memory VMs on pve3 (disabled)
-pve3_ubuntu_highmem_vm_count = 0
+# Ubuntu High-Memory VMs on pve3
+pve3_ubuntu_highmem_vm_count         = 1
+pve3_ubuntu_highmem_vm_name          = "ubuntu-highmem-vm"
+pve3_ubuntu_highmem_vm_cores         = 2
+pve3_ubuntu_highmem_vm_memory        = 8192
+pve3_ubuntu_highmem_vm_disk_size     = 20
+pve3_ubuntu_highmem_vm_mac_addresses = ["52:54:00:e5:d5:f4"]
 
 # Talos VMs on pve3 (disabled)
 pve3_talos_vm_count = 0
