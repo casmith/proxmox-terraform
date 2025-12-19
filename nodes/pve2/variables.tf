@@ -220,3 +220,44 @@ variable "talos_sandbox_vm_tags" {
   type        = string
   default     = "terraform;talos;kubernetes;sandbox"
 }
+
+# ============================================================================
+# Talos Obs VM Configuration
+# ============================================================================
+
+variable "talos_obs_vm_count" {
+  description = "Number of Talos Obs VMs to create on this node"
+  type        = number
+}
+
+variable "talos_obs_vm_name" {
+  description = "Base name for Talos Obs VMs"
+  type        = string
+}
+
+variable "talos_obs_vm_cores" {
+  description = "Number of CPU cores for Talos Obs VMs"
+  type        = number
+}
+
+variable "talos_obs_vm_memory" {
+  description = "Memory in MB for Talos Obs VMs"
+  type        = number
+}
+
+variable "talos_obs_vm_disk_size" {
+  description = "Disk size in GB for Talos Obs VMs"
+  type        = number
+}
+
+variable "talos_obs_vm_mac_addresses" {
+  description = "MAC addresses for Talos Obs VMs"
+  type        = list(string)
+  default     = []
+}
+
+variable "talos_obs_vm_tags" {
+  description = "Tags for Talos Obs VMs (semicolon separated)"
+  type        = string
+  default     = "terraform;talos;kubernetes;monitoring"
+}

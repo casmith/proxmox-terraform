@@ -260,8 +260,48 @@ variable "pve1_talos_sandbox_vm_tags" {
   default     = "terraform;talos;kubernetes;sandbox"
 }
 
+# Talos Obs VMs on pve1
+variable "pve1_talos_obs_vm_count" {
+  description = "Number of Talos Obs VMs on pve1"
+  type        = number
+  default     = 0
+}
 
+variable "pve1_talos_obs_vm_name" {
+  description = "Base name for Talos Obs VMs on pve1"
+  type        = string
+  default     = "talos-obs"
+}
 
+variable "pve1_talos_obs_vm_cores" {
+  description = "CPU cores for Talos Obs VMs on pve1"
+  type        = number
+  default     = 4
+}
+
+variable "pve1_talos_obs_vm_memory" {
+  description = "Memory in MB for Talos Obs VMs on pve1"
+  type        = number
+  default     = 8192
+}
+
+variable "pve1_talos_obs_vm_disk_size" {
+  description = "Disk size in GB for Talos Obs VMs on pve1"
+  type        = number
+  default     = 50
+}
+
+variable "pve1_talos_obs_vm_mac_addresses" {
+  description = "MAC addresses for Talos Obs VMs on pve1"
+  type        = list(string)
+  default     = []
+}
+
+variable "pve1_talos_obs_vm_tags" {
+  description = "Tags for Talos Obs VMs on pve1"
+  type        = string
+  default     = "terraform;talos;kubernetes;monitoring"
+}
 
 
 
@@ -465,6 +505,49 @@ variable "pve2_talos_sandbox_vm_tags" {
   default     = "terraform;talos;kubernetes;sandbox"
 }
 
+# Talos Obs VMs on pve2
+variable "pve2_talos_obs_vm_count" {
+  description = "Number of Talos Obs VMs on pve2"
+  type        = number
+  default     = 0
+}
+
+variable "pve2_talos_obs_vm_name" {
+  description = "Base name for Talos Obs VMs on pve2"
+  type        = string
+  default     = "talos-obs"
+}
+
+variable "pve2_talos_obs_vm_cores" {
+  description = "CPU cores for Talos Obs VMs on pve2"
+  type        = number
+  default     = 4
+}
+
+variable "pve2_talos_obs_vm_memory" {
+  description = "Memory in MB for Talos Obs VMs on pve2"
+  type        = number
+  default     = 8192
+}
+
+variable "pve2_talos_obs_vm_disk_size" {
+  description = "Disk size in GB for Talos Obs VMs on pve2"
+  type        = number
+  default     = 50
+}
+
+variable "pve2_talos_obs_vm_mac_addresses" {
+  description = "MAC addresses for Talos Obs VMs on pve2"
+  type        = list(string)
+  default     = []
+}
+
+variable "pve2_talos_obs_vm_tags" {
+  description = "Tags for Talos Obs VMs on pve2"
+  type        = string
+  default     = "terraform;talos;kubernetes;monitoring"
+}
+
 # ============================================================================
 # pve3 Configuration
 # ============================================================================
@@ -652,6 +735,49 @@ variable "pve3_talos_sandbox_vm_tags" {
   description = "Tags for Talos Sandbox VMs on pve3"
   type        = string
   default     = "terraform;talos;kubernetes;sandbox"
+}
+
+# Talos Obs VMs on pve3
+variable "pve3_talos_obs_vm_count" {
+  description = "Number of Talos Obs VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_talos_obs_vm_name" {
+  description = "Base name for Talos Obs VMs on pve3"
+  type        = string
+  default     = "talos-obs"
+}
+
+variable "pve3_talos_obs_vm_cores" {
+  description = "CPU cores for Talos Obs VMs on pve3"
+  type        = number
+  default     = 4
+}
+
+variable "pve3_talos_obs_vm_memory" {
+  description = "Memory in MB for Talos Obs VMs on pve3"
+  type        = number
+  default     = 8192
+}
+
+variable "pve3_talos_obs_vm_disk_size" {
+  description = "Disk size in GB for Talos Obs VMs on pve3"
+  type        = number
+  default     = 50
+}
+
+variable "pve3_talos_obs_vm_mac_addresses" {
+  description = "MAC addresses for Talos Obs VMs on pve3"
+  type        = list(string)
+  default     = []
+}
+
+variable "pve3_talos_obs_vm_tags" {
+  description = "Tags for Talos Obs VMs on pve3"
+  type        = string
+  default     = "terraform;talos;kubernetes;monitoring"
 }
 
 # ============================================================================

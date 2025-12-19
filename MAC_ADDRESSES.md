@@ -18,8 +18,11 @@ This file tracks which MAC addresses are assigned to which VMs.
 | 52:54:00:0d:69:41  | pve2-ubuntu-highmem-vm-01  | pve2 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.41   |
 | 52:54:00:e5:d5:f4  | pve3-ubuntu-vm-01          | pve3 | Ubuntu 24.04 LTS (2GB RAM)      | 192.168.10.42   |
 | 52:54:00:e9:c8:5a  | pve3-ubuntu-highmem-vm-01  | pve3 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.43   |
-| 52:54:00:ff:c1:cc  | pve4-ubuntu-vm-01          | pve4 | Ubuntu 24.04 LTS (2GP RAM)      | 192.168.10.45   | 
+| 52:54:00:ff:c1:cc  | pve4-ubuntu-vm-01          | pve4 | Ubuntu 24.04 LTS (2GP RAM)      | 192.168.10.45   |
 | 52:54:00:29:bf:af  | pve4-ubuntu-highmem-vm-01  | pve4 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.46   |
+| 52:54:00:62:80:ec  | pve1-talos-obs-01          | pve1 | Talos monitoring cluster        | 192.168.10.47   |
+| 52:54:00:f8:69:f9  | pve2-talos-obs-01          | pve2 | Talos monitoring cluster        | 192.168.10.48   |
+| 52:54:00:ed:b7:ca  | pve3-talos-obs-01          | pve3 | Talos monitoring cluster        | 192.168.10.49   |
 
 
 ## Available MAC Addresses
@@ -27,9 +30,6 @@ This file tracks which MAC addresses are assigned to which VMs.
 The following MAC addresses are available for future VMs:
 
 ```
-52:54:00:62:80:ec - 192.168.10.47
-52:54:00:f8:69:f9 - 192.168.10.48
-52:54:00:ed:b7:ca - 192.168.10.49
 52:54:00:dd:14:d9 - 192.168.10.50
 52:54:00:15:09:5d - 192.168.10.51
 52:54:00:11:67:63 - 192.168.10.52

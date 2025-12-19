@@ -58,6 +58,15 @@ module "pve1" {
   talos_sandbox_vm_disk_size     = var.pve1_talos_sandbox_vm_disk_size
   talos_sandbox_vm_mac_addresses = var.pve1_talos_sandbox_vm_mac_addresses
   talos_sandbox_vm_tags          = var.pve1_talos_sandbox_vm_tags
+
+  # Talos Obs VM configuration
+  talos_obs_vm_count         = var.pve1_talos_obs_vm_count
+  talos_obs_vm_name          = var.pve1_talos_obs_vm_name
+  talos_obs_vm_cores         = var.pve1_talos_obs_vm_cores
+  talos_obs_vm_memory        = var.pve1_talos_obs_vm_memory
+  talos_obs_vm_disk_size     = var.pve1_talos_obs_vm_disk_size
+  talos_obs_vm_mac_addresses = var.pve1_talos_obs_vm_mac_addresses
+  talos_obs_vm_tags          = var.pve1_talos_obs_vm_tags
 }
 
 # ============================================================================
@@ -115,6 +124,14 @@ module "pve2" {
   talos_sandbox_vm_mac_addresses = var.pve2_talos_sandbox_vm_mac_addresses
   talos_sandbox_vm_tags          = var.pve2_talos_sandbox_vm_tags
 
+  # Talos Obs VM configuration
+  talos_obs_vm_count         = var.pve2_talos_obs_vm_count
+  talos_obs_vm_name          = var.pve2_talos_obs_vm_name
+  talos_obs_vm_cores         = var.pve2_talos_obs_vm_cores
+  talos_obs_vm_memory        = var.pve2_talos_obs_vm_memory
+  talos_obs_vm_disk_size     = var.pve2_talos_obs_vm_disk_size
+  talos_obs_vm_mac_addresses = var.pve2_talos_obs_vm_mac_addresses
+  talos_obs_vm_tags          = var.pve2_talos_obs_vm_tags
 
 }
 
@@ -173,6 +190,14 @@ module "pve3" {
   talos_sandbox_vm_mac_addresses = var.pve3_talos_sandbox_vm_mac_addresses
   talos_sandbox_vm_tags          = var.pve3_talos_sandbox_vm_tags
 
+  # Talos Obs VM configuration
+  talos_obs_vm_count         = var.pve3_talos_obs_vm_count
+  talos_obs_vm_name          = var.pve3_talos_obs_vm_name
+  talos_obs_vm_cores         = var.pve3_talos_obs_vm_cores
+  talos_obs_vm_memory        = var.pve3_talos_obs_vm_memory
+  talos_obs_vm_disk_size     = var.pve3_talos_obs_vm_disk_size
+  talos_obs_vm_mac_addresses = var.pve3_talos_obs_vm_mac_addresses
+  talos_obs_vm_tags          = var.pve3_talos_obs_vm_tags
 
 }
 

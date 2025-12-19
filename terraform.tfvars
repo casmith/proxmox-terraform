@@ -50,6 +50,14 @@ pve1_talos_sandbox_vm_memory        = 4096
 pve1_talos_sandbox_vm_disk_size     = 30
 pve1_talos_sandbox_vm_mac_addresses = ["52:54:00:5a:52:e9"]
 
+# Talos Obs VMs on pve1
+pve1_talos_obs_vm_count         = 1
+pve1_talos_obs_vm_name          = "talos-obs"
+pve1_talos_obs_vm_cores         = 4
+pve1_talos_obs_vm_memory        = 8192
+pve1_talos_obs_vm_disk_size     = 50
+pve1_talos_obs_vm_mac_addresses = ["52:54:00:62:80:ec"]
+
 # ============================================================================
 # pve2 Node Configuration
 # ============================================================================
@@ -91,6 +99,14 @@ pve2_talos_sandbox_vm_memory        = 4096
 pve2_talos_sandbox_vm_disk_size     = 30
 pve2_talos_sandbox_vm_mac_addresses = ["52:54:00:0c:08:a7", "52:54:00:9c:30:b8"]
 
+# Talos Obs VMs on pve2
+pve2_talos_obs_vm_count         = 1
+pve2_talos_obs_vm_name          = "talos-obs"
+pve2_talos_obs_vm_cores         = 4
+pve2_talos_obs_vm_memory        = 8192
+pve2_talos_obs_vm_disk_size     = 50
+pve2_talos_obs_vm_mac_addresses = ["52:54:00:f8:69:f9"]
+
 # ============================================================================
 # pve3 Node Configuration
 # ============================================================================
@@ -120,6 +136,14 @@ pve3_talos_vm_count = 0
 
 # Talos Sandbox VMs on pve3 (disabled)
 pve3_talos_sandbox_vm_count = 0
+
+# Talos Obs VMs on pve3
+pve3_talos_obs_vm_count         = 1
+pve3_talos_obs_vm_name          = "talos-obs"
+pve3_talos_obs_vm_cores         = 4
+pve3_talos_obs_vm_memory        = 8192
+pve3_talos_obs_vm_disk_size     = 50
+pve3_talos_obs_vm_mac_addresses = ["52:54:00:ed:b7:ca"]
 
 # ============================================================================
 # pve4 Node Configuration
