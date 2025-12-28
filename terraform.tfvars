@@ -35,12 +35,12 @@ pve1_archlinux_vm_memory    = 2048
 pve1_archlinux_vm_disk_size = 20
 
 # Talos VMs on pve1
-pve1_talos_vm_count         = 2
+pve1_talos_vm_count         = 1
 pve1_talos_vm_name          = "talos-vm"
 pve1_talos_vm_cores         = 4
-pve1_talos_vm_memory        = 4096
+pve1_talos_vm_memory        = 8192
 pve1_talos_vm_disk_size     = 30
-pve1_talos_vm_mac_addresses = ["52:54:00:c4:9c:d7", "52:54:00:4d:e5:5d"]
+pve1_talos_vm_mac_addresses = ["52:54:00:c4:9c:d7"]
 
 # Talos Sandbox VMs on pve1
 pve1_talos_sandbox_vm_count         = 1
@@ -86,7 +86,7 @@ pve2_ubuntu_highmem_vm_mac_addresses = ["52:54:00:0d:69:41"]
 pve2_talos_vm_count         = 1
 pve2_talos_vm_name          = "talos-vm"
 pve2_talos_vm_cores         = 4
-pve2_talos_vm_memory        = 4096
+pve2_talos_vm_memory        = 8192
 pve2_talos_vm_disk_size     = 30
 pve2_talos_vm_mac_addresses = ["52:54:00:cd:0f:61"]
 
@@ -174,4 +174,24 @@ pve4_talos_vm_count = 0
 
 # Talos Sandbox VMs on pve4 (disabled)
 pve4_talos_sandbox_vm_count = 0
+
+# ============================================================================
+# pve5 Node Configuration
+# ============================================================================
+
+# Template IDs on pve5 (local-lvm storage)
+pve5_ubuntu_template_id  = 9400
+pve5_talos_template_id   = 9401
+
+# Ubuntu VMs on pve5 (disabled)
+pve5_ubuntu_vm_count = 0
+
+# Ubuntu High-Memory VMs on pve5 (disabled)
+pve5_ubuntu_highmem_vm_count = 0
+
+# Talos VMs on pve5 (disabled)
+pve5_talos_vm_count = 0
+
+# Talos Sandbox VMs on pve5 (disabled)
+pve5_talos_sandbox_vm_count = 0
 

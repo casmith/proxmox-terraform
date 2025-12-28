@@ -1,0 +1,268 @@
+---
+- name: Install Prometheus Exporters on Proxmox Nodes
+  hosts: proxmox_hosts
+  gather_facts: yes
+  vars:
+    node_exporter_version: "1.8.2"
+    node_exporter_port: 9100
+    pve_exporter_version: "3.4.5"
+    pve_exporter_port: 9221
+
+  tasks:
+    # ============================================
+    # Install Node Exporter (System Metrics)
+    # ============================================
+
+    - name: Create node_exporter user
+      user:
+        name: node_exporter
+        system: yes
+        shell: /bin/false
+        create_home: no
+
+    - name: Check if node_exporter is already installed
+      stat:
+        path: /usr/local/bin/node_exporter
+      register: node_exporter_binary
+
+    - name: Download node_exporter
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        mode: '0644'
+      when: not node_exporter_binary.stat.exists
+
+    - name: Extract node_exporter
+      unarchive:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: /tmp
+        remote_src: yes
+      when: not node_exporter_binary.stat.exists
+
+    - name: Copy node_exporter binary to /usr/local/bin
+      copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+        dest: /usr/local/bin/node_exporter
+        remote_src: yes
+        owner: node_exporter
+        group: node_exporter
+        mode: '0755'
+      when: not node_exporter_binary.stat.exists
+
+    - name: Clean up node_exporter installation files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        - "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64"
+      when: not node_exporter_binary.stat.exists
+
+    - name: Create node_exporter systemd service
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        content: |
+          [Unit]
+          Description=Node Exporter
+          Documentation=https://github.com/prometheus/node_exporter
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User=node_exporter
+          Group=node_exporter
+          ExecStart=/usr/local/bin/node_exporter \
+            --web.listen-address=:{{ node_exporter_port }}
+
+          Restart=on-failure
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: '0644'
+      register: node_exporter_service
+
+    - name: Reload systemd daemon for node_exporter
+      systemd:
+        daemon_reload: yes
+      when: node_exporter_service.changed
+
+    - name: Enable and start node_exporter
+      systemd:
+        name: node_exporter
+        enabled: yes
+        state: started
+
+    # ============================================
+    # Install PVE Exporter (Proxmox Metrics)
+    # ============================================
+
+    - name: Install Python pip and virtualenv dependencies
+      apt:
+        name:
+          - python3-pip
+          - python3-venv
+        state: present
+        update_cache: yes
+
+    - name: Create pve_exporter user
+      user:
+        name: pve_exporter
+        system: yes
+        shell: /bin/false
+        create_home: yes
+        home: /opt/pve_exporter
+
+    - name: Create pve_exporter directory
+      file:
+        path: /opt/pve_exporter
+        state: directory
+        owner: pve_exporter
+        group: pve_exporter
+        mode: '0755'
+
+    - name: Create Python virtual environment for pve_exporter
+      pip:
+        name: prometheus-pve-exporter
+        virtualenv: /opt/pve_exporter/venv
+        virtualenv_command: python3 -m venv
+      become_user: pve_exporter
+
+    - name: Create pve_exporter configuration file
+      copy:
+        dest: /etc/pve-exporter.yml
+        content: |
+          default:
+            user: root@pam
+            token_name: "monitoring"
+            token_value: "{{ lookup('env', 'PVE_TOKEN_VALUE') | default('CHANGE_ME', true) }}"
+            verify_ssl: false
+        owner: pve_exporter
+        group: pve_exporter
+        mode: '0600'
+      register: pve_config
+
+    - name: Display PVE exporter configuration notice
+      debug:
+        msg:
+          - "============================================"
+          - "IMPORTANT: PVE Exporter Configuration"
+          - "============================================"
+          - ""
+          - "You need to create a Proxmox API token for monitoring:"
+          - ""
+          - "1. Log into Proxmox web UI"
+          - "2. Go to Datacenter > Permissions > API Tokens"
+          - "3. Click 'Add' and create a token:"
+          - "   - User: root@pam"
+          - "   - Token ID: monitoring"
+          - "   - Privilege Separation: NO (uncheck)"
+          - "4. Copy the token secret"
+          - "5. Update /etc/pve-exporter.yml on each node:"
+          - "   Replace 'CHANGE_ME' with the actual token value"
+          - ""
+          - "Or set PVE_TOKEN_VALUE environment variable before running this playbook"
+          - ""
+      when: pve_config.changed
+
+    - name: Create pve_exporter systemd service
+      copy:
+        dest: /etc/systemd/system/pve_exporter.service
+        content: |
+          [Unit]
+          Description=Prometheus Proxmox VE Exporter
+          Documentation=https://github.com/prometheus-pve/prometheus-pve-exporter
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User=pve_exporter
+          Group=pve_exporter
+          WorkingDirectory=/opt/pve_exporter
+          ExecStart=/opt/pve_exporter/venv/bin/pve_exporter /etc/pve-exporter.yml --address :{{ pve_exporter_port }}
+
+          Restart=on-failure
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: '0644'
+      register: pve_exporter_service
+
+    - name: Reload systemd daemon for pve_exporter
+      systemd:
+        daemon_reload: yes
+      when: pve_exporter_service.changed
+
+    - name: Enable and start pve_exporter
+      systemd:
+        name: pve_exporter
+        enabled: yes
+        state: started
+      # Only start if config is not using placeholder token
+      when: lookup('env', 'PVE_TOKEN_VALUE') | default('', true) != ''
+      ignore_errors: yes
+
+    # ============================================
+    # Verification
+    # ============================================
+
+    - name: Wait for node_exporter to be ready
+      uri:
+        url: "http://localhost:{{ node_exporter_port }}/metrics"
+        status_code: 200
+      register: node_exporter_check
+      until: node_exporter_check.status == 200
+      retries: 5
+      delay: 2
+
+    - name: Check pve_exporter status
+      systemd:
+        name: pve_exporter
+      register: pve_exporter_status
+
+    # ============================================
+    # Display Summary
+    # ============================================
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Prometheus Exporters Installed Successfully!"
+          - "============================================"
+          - ""
+          - "Node Exporter (System Metrics):"
+          - "  ✓ Installed at /usr/local/bin/node_exporter"
+          - "  ✓ Service: systemctl status node_exporter"
+          - "  ✓ Metrics: http://{{ ansible_default_ipv4.address }}:{{ node_exporter_port }}/metrics"
+          - "  ✓ Status: {{ 'Running' if node_exporter_check.status == 200 else 'Not Running' }}"
+          - ""
+          - "PVE Exporter (Proxmox Metrics):"
+          - "  ✓ Installed at /opt/pve_exporter/venv"
+          - "  ✓ Config: /etc/pve-exporter.yml"
+          - "  ✓ Service: systemctl status pve_exporter"
+          - "  ✓ Metrics: http://{{ ansible_default_ipv4.address }}:{{ pve_exporter_port }}/pve"
+          - "  ✓ Status: {{ pve_exporter_status.status.ActiveState }}"
+          - ""
+          - "Next Steps:"
+          - "  1. Configure PVE exporter API token (see instructions above)"
+          - "  2. Restart pve_exporter: systemctl restart pve_exporter"
+          - "  3. Add scrape configs to your Prometheus:"
+          - ""
+          - "     # Node Exporter"
+          - "     - job_name: 'proxmox-nodes'"
+          - "       static_configs:"
+          - "         - targets: ['{{ ansible_default_ipv4.address }}:{{ node_exporter_port }}']"
+          - ""
+          - "     # PVE Exporter"
+          - "     - job_name: 'proxmox-pve'"
+          - "       static_configs:"
+          - "         - targets: ['{{ ansible_default_ipv4.address }}:{{ pve_exporter_port }}']"
+          - "       params:"
+          - "         module: [default]"
+          - ""

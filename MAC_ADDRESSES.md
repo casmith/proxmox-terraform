@@ -6,12 +6,11 @@ This file tracks which MAC addresses are assigned to which VMs.
 
 | MAC Address        | VM Name                    | Node | Notes                           | IP Address      |
 |--------------------|----------------------------|------|---------------------------------| --------------- |
-| 52:54:00:c4:9c:d7  | pve1-talos-vm-01           | pve1 | Talos Kubernetes node           | 192.168.10.33   |
-| 52:54:00:4d:e5:5d  | pve1-talos-vm-02           | pve1 | Talos Kubernetes node           | 192.168.10.34   |
+| 52:54:00:c4:9c:d7  | pve1-talos-vm-01           | pve1 | Talos Kubernetes node (8GB RAM) | 192.168.10.33   |
 | 52:54:00:06:d2:7f  | pve1-ubuntu-vm-01          | pve1 | Ubuntu 24.04 LTS                | 192.168.10.35   |
 | 52:54:00:33:3f:a8  | pve1-ubuntu-vm-02          | pve1 | Ubuntu 24.04 LTS                | 192.168.10.36   |
 | 52:54:00:5a:52:e9  | pve1-talos-sandbox-pve1-01 | pve1 | Talos sandbox/experimental      | 192.168.10.37   |
-| 52:54:00:cd:0f:61  | pve2-talos-vm-01           | pve2 | Talos Kubernetes node           | 192.168.10.44   |
+| 52:54:00:cd:0f:61  | pve2-talos-vm-01           | pve2 | Talos Kubernetes node (8GB RAM) | 192.168.10.44   |
 | 52:54:00:0c:08:a7  | pve2-talos-sandbox-pve2-01 | pve2 | Talos sandbox/experimental      | 192.168.10.38   |
 | 52:54:00:9c:30:b8  | pve2-talos-sandbox-pve2-02 | pve2 | Talos sandbox/experimental      | 192.168.10.39   |
 | 52:54:00:36:34:cb  | pve2-ubuntu-vm-01          | pve2 | Ubuntu 24.04 LTS (2GB RAM)      | 192.168.10.40   |
@@ -30,6 +29,7 @@ This file tracks which MAC addresses are assigned to which VMs.
 The following MAC addresses are available for future VMs:
 
 ```
+52:54:00:4d:e5:5d - 192.168.10.34 (returned from pve1-talos-vm-02)
 52:54:00:dd:14:d9 - 192.168.10.50
 52:54:00:15:09:5d - 192.168.10.51
 52:54:00:11:67:63 - 192.168.10.52

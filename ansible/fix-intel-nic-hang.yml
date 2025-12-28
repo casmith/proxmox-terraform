@@ -1,0 +1,233 @@
+---
+- name: Fix Intel NIC Hardware Unit Hang Issue
+  hosts: "{{ target_hosts | default('proxmox_hosts') }}"
+  gather_facts: yes
+  vars:
+    # Set to specific interface name or leave empty to auto-detect
+    network_interface: "{{ interface_name | default('') }}"
+
+  tasks:
+    # ============================================
+    # Detect Affected Hardware
+    # ============================================
+
+    - name: Gather network interface information
+      setup:
+        gather_subset:
+          - network
+
+    - name: Detect primary network interface if not specified
+      set_fact:
+        detected_interface: "{{ ansible_default_ipv4.interface }}"
+      when: network_interface == ''
+
+    - name: Use specified interface
+      set_fact:
+        detected_interface: "{{ network_interface }}"
+      when: network_interface != ''
+
+    - name: Display detected interface
+      debug:
+        msg: "Using network interface: {{ detected_interface }}"
+
+    - name: Check if interface uses Intel driver
+      shell: ethtool -i {{ detected_interface }} 2>/dev/null | grep -i driver | awk '{print $2}'
+      register: nic_driver
+      changed_when: false
+      failed_when: false
+
+    - name: Display NIC driver information
+      debug:
+        msg:
+          - "Interface: {{ detected_interface }}"
+          - "Driver: {{ nic_driver.stdout | default('Unknown') }}"
+          - ""
+          - "Common affected Intel drivers: e1000e, igb, ixgbe"
+
+    - name: Warning if not Intel driver
+      debug:
+        msg:
+          - "============================================"
+          - "WARNING: Interface {{ detected_interface }} does not appear to use an Intel driver"
+          - "Current driver: {{ nic_driver.stdout | default('Unknown') }}"
+          - "This fix is specifically for Intel NICs experiencing hardware hangs"
+          - "Continuing anyway as requested..."
+          - "============================================"
+      when: nic_driver.stdout is not search('e1000|igb|ixgbe')
+
+    # ============================================
+    # Install Required Tools
+    # ============================================
+
+    - name: Install ethtool
+      apt:
+        name: ethtool
+        state: present
+        update_cache: yes
+
+    # ============================================
+    # Check Current Offload Settings
+    # ============================================
+
+    - name: Check current TSO setting
+      shell: ethtool -k {{ detected_interface }} | grep -E '^tcp-segmentation-offload:' | awk '{print $2}'
+      register: current_tso
+      changed_when: false
+      failed_when: false
+
+    - name: Check current GSO setting
+      shell: ethtool -k {{ detected_interface }} | grep -E '^generic-segmentation-offload:' | awk '{print $2}'
+      register: current_gso
+      changed_when: false
+      failed_when: false
+
+    - name: Display current offload settings
+      debug:
+        msg:
+          - "Current offload settings for {{ detected_interface }}:"
+          - "  TSO (TCP Segmentation Offload): {{ current_tso.stdout | default('unknown') }}"
+          - "  GSO (Generic Segmentation Offload): {{ current_gso.stdout | default('unknown') }}"
+
+    # ============================================
+    # Apply Temporary Fix (Immediate)
+    # ============================================
+
+    - name: Apply temporary fix - Disable TSO and GSO
+      command: ethtool -K {{ detected_interface }} tso off gso off
+      register: temp_fix
+      changed_when: true
+      failed_when: false
+
+    - name: Verify temporary fix was applied
+      shell: ethtool -k {{ detected_interface }} | grep -E '^(tcp-segmentation-offload|generic-segmentation-offload):' | awk '{print $1 " " $2}'
+      register: verify_temp_fix
+      changed_when: false
+
+    - name: Display temporary fix results
+      debug:
+        msg:
+          - "Temporary fix applied (active until reboot):"
+          - "{{ verify_temp_fix.stdout_lines }}"
+
+    # ============================================
+    # Apply Permanent Fix
+    # ============================================
+
+    - name: Check if /etc/network/interfaces exists
+      stat:
+        path: /etc/network/interfaces
+      register: interfaces_file
+
+    - name: Backup /etc/network/interfaces
+      copy:
+        src: /etc/network/interfaces
+        dest: /etc/network/interfaces.backup-{{ ansible_date_time.epoch }}
+        remote_src: yes
+        mode: '0644'
+      when: interfaces_file.stat.exists
+
+    - name: Check if post-up command already exists
+      shell: grep -q "ethtool -K {{ detected_interface }} tso off gso off" /etc/network/interfaces
+      register: postup_exists
+      changed_when: false
+      failed_when: false
+      when: interfaces_file.stat.exists
+
+    - name: Find the interface stanza in /etc/network/interfaces
+      shell: "grep -n '^iface {{ detected_interface }}' /etc/network/interfaces | head -1 | cut -d: -f1"
+      register: iface_line
+      changed_when: false
+      failed_when: false
+      when:
+        - interfaces_file.stat.exists
+        - postup_exists.rc != 0
+
+    - name: Add post-up command to /etc/network/interfaces
+      lineinfile:
+        path: /etc/network/interfaces
+        insertafter: "^iface {{ detected_interface }}.*"
+        line: "  post-up /sbin/ethtool -K {{ detected_interface }} tso off gso off"
+        state: present
+      when:
+        - interfaces_file.stat.exists
+        - postup_exists.rc != 0
+        - iface_line.stdout != ""
+      register: permanent_fix
+
+    - name: Create systemd service as alternative/backup permanent fix
+      copy:
+        dest: /etc/systemd/system/fix-intel-nic-{{ detected_interface }}.service
+        content: |
+          [Unit]
+          Description=Fix Intel NIC Hardware Hang for {{ detected_interface }}
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          ExecStart=/sbin/ethtool -K {{ detected_interface }} tso off gso off
+          RemainAfterExit=yes
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: '0644'
+      register: systemd_service
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+      when: systemd_service.changed
+
+    - name: Enable systemd service for NIC fix
+      systemd:
+        name: "fix-intel-nic-{{ detected_interface }}"
+        enabled: yes
+        state: started
+      when: systemd_service.changed
+
+    # ============================================
+    # Verification and Summary
+    # ============================================
+
+    - name: Final verification of settings
+      shell: ethtool -k {{ detected_interface }} | grep -E '^(tcp-segmentation-offload|generic-segmentation-offload):'
+      register: final_check
+      changed_when: false
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Intel NIC Hang Fix Applied Successfully!"
+          - "============================================"
+          - ""
+          - "Interface: {{ detected_interface }}"
+          - "Driver: {{ nic_driver.stdout | default('Unknown') }}"
+          - ""
+          - "Current Settings:"
+          - "{{ final_check.stdout_lines | map('regex_replace', '^', '  ') | list | join('\n') }}"
+          - ""
+          - "Permanent Fix Methods Applied:"
+          - "  ✓ Systemd service: fix-intel-nic-{{ detected_interface }}.service"
+          - "  {{ '✓' if permanent_fix.changed else '⊘' }} /etc/network/interfaces post-up command {{ '(already exists)' if postup_exists.rc == 0 else '(added)' if permanent_fix.changed else '(not applicable)' }}"
+          - ""
+          - "What This Fix Does:"
+          - "  - Disables TCP Segmentation Offload (TSO)"
+          - "  - Disables Generic Segmentation Offload (GSO)"
+          - "  - Prevents 'Detected Hardware Unit Hang' errors"
+          - ""
+          - "Note: This is a workaround for a known Intel NIC firmware bug"
+          - "      that Intel does not plan to fix. The performance impact"
+          - "      is minimal for most workloads."
+          - ""
+          - "Verification:"
+          - "  - Changes are active now (no reboot required)"
+          - "  - Will persist across reboots via systemd service"
+          - "  - Monitor logs: journalctl -u fix-intel-nic-{{ detected_interface }}"
+          - "  - Check status: systemctl status fix-intel-nic-{{ detected_interface }}"
+          - ""
+          - "To verify manually:"
+          - "  ethtool -k {{ detected_interface }} | grep -E 'segmentation-offload'"
+          - ""

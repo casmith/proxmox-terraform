@@ -1,0 +1,185 @@
+---
+- name: Fix Proxmox SSL Certificate Hostname Mismatch
+  hosts: "{{ target_hosts | default('proxmox_hosts') }}"
+  gather_facts: yes
+
+  tasks:
+    # ============================================
+    # Detect Certificate Issues
+    # ============================================
+
+    - name: Get hostname
+      command: hostname
+      register: hostname_short
+      changed_when: false
+
+    - name: Get FQDN
+      command: hostname -f
+      register: hostname_fqdn
+      changed_when: false
+
+    - name: Get current certificate subject
+      shell: "openssl x509 -in /etc/pve/nodes/{{ hostname_short.stdout }}/pve-ssl.pem -noout -subject 2>/dev/null | grep -oP 'CN=\\K[^,]+' || echo 'No certificate'"
+      register: cert_cn
+      changed_when: false
+      failed_when: false
+
+    - name: Display current certificate information
+      debug:
+        msg:
+          - "============================================"
+          - "Certificate Status Check"
+          - "============================================"
+          - ""
+          - "Node: {{ hostname_short.stdout }}"
+          - "Current FQDN: {{ hostname_fqdn.stdout }}"
+          - "Certificate CN: {{ cert_cn.stdout }}"
+          - ""
+          - "{{ 'Mismatch detected!' if hostname_fqdn.stdout != cert_cn.stdout else 'Certificate matches hostname' }}"
+
+    - name: Set certificate needs regeneration flag
+      set_fact:
+        cert_needs_regen: "{{ hostname_fqdn.stdout != cert_cn.stdout }}"
+
+    # ============================================
+    # Backup Existing Certificates
+    # ============================================
+
+    - name: Create backup directory
+      file:
+        path: /root/ssl-cert-backup-{{ ansible_date_time.epoch }}
+        state: directory
+        mode: '0700'
+      when: cert_needs_regen
+
+    - name: Backup existing SSL certificates
+      copy:
+        src: "{{ item }}"
+        dest: "/root/ssl-cert-backup-{{ ansible_date_time.epoch }}/"
+        remote_src: yes
+        mode: preserve
+      loop:
+        - "/etc/pve/nodes/{{ hostname_short.stdout }}/pve-ssl.pem"
+        - "/etc/pve/nodes/{{ hostname_short.stdout }}/pve-ssl.key"
+      when: cert_needs_regen
+      failed_when: false
+
+    # ============================================
+    # Regenerate SSL Certificate
+    # ============================================
+
+    - name: Delete old SSL certificate files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/etc/pve/nodes/{{ hostname_short.stdout }}/pve-ssl.pem"
+        - "/etc/pve/nodes/{{ hostname_short.stdout }}/pve-ssl.key"
+      when: cert_needs_regen
+
+    - name: Regenerate SSL certificate with correct hostname
+      command: pvecm updatecerts --force
+      when: cert_needs_regen
+      register: updatecerts_result
+
+    - name: Display certificate regeneration result
+      debug:
+        msg:
+          - "Certificate regenerated successfully"
+          - "{{ updatecerts_result.stdout_lines | default([]) }}"
+      when: cert_needs_regen and updatecerts_result.rc == 0
+
+    # ============================================
+    # Restart Services
+    # ============================================
+
+    - name: Restart pveproxy service
+      systemd:
+        name: pveproxy
+        state: restarted
+      when: cert_needs_regen
+
+    - name: Restart pvedaemon service
+      systemd:
+        name: pvedaemon
+        state: restarted
+      when: cert_needs_regen
+
+    - name: Wait for pveproxy to be ready
+      wait_for:
+        port: 8006
+        delay: 2
+        timeout: 30
+      when: cert_needs_regen
+
+    # ============================================
+    # Verify New Certificate
+    # ============================================
+
+    - name: Get new certificate subject
+      shell: "openssl x509 -in /etc/pve/nodes/{{ hostname_short.stdout }}/pve-ssl.pem -noout -subject -dates | grep -E 'subject|notAfter'"
+      register: new_cert_info
+      changed_when: false
+      when: cert_needs_regen
+
+    - name: Verify certificate with openssl s_client
+      shell: "timeout 5 openssl s_client -connect localhost:8006 -servername {{ hostname_fqdn.stdout }} </dev/null 2>&1 | grep -E 'Verify return code|subject'"
+      register: ssl_verify
+      changed_when: false
+      failed_when: false
+      when: cert_needs_regen
+
+    # ============================================
+    # Display Results
+    # ============================================
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "SSL Certificate Fixed Successfully!"
+          - "============================================"
+          - ""
+          - "Node: {{ hostname_short.stdout }}"
+          - "FQDN: {{ hostname_fqdn.stdout }}"
+          - ""
+          - "New Certificate Information:"
+          - "{{ new_cert_info.stdout_lines | map('regex_replace', '^', '  ') | list | join('\n') }}"
+          - ""
+          - "SSL Verification:"
+          - "{{ ssl_verify.stdout_lines | map('regex_replace', '^', '  ') | list | join('\n') }}"
+          - ""
+          - "Services Restarted:"
+          - "  ✓ pveproxy (web interface)"
+          - "  ✓ pvedaemon (API daemon)"
+          - ""
+          - "Certificate backup location:"
+          - "  /root/ssl-cert-backup-{{ ansible_date_time.epoch }}/"
+          - ""
+          - "Next Steps:"
+          - "  1. Clear your browser cache"
+          - "  2. Close all Proxmox web UI tabs"
+          - "  3. Open a new browser window and access:"
+          - "     https://{{ ansible_default_ipv4.address }}:8006"
+          - "  4. Accept the new self-signed certificate"
+          - ""
+          - "Note: You may need to accept the new certificate in your browser"
+          - "      since it's self-signed. This is normal for Proxmox clusters."
+          - ""
+      when: cert_needs_regen
+
+    - name: Display no action needed message
+      debug:
+        msg:
+          - "============================================"
+          - "Certificate Already Valid"
+          - "============================================"
+          - ""
+          - "Node: {{ hostname_short.stdout }}"
+          - "FQDN: {{ hostname_fqdn.stdout }}"
+          - "Certificate CN: {{ cert_cn.stdout }}"
+          - ""
+          - "No certificate regeneration needed."
+          - "The certificate already matches the hostname."
+          - ""
+      when: not cert_needs_regen

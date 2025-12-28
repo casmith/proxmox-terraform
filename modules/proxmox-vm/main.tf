@@ -47,6 +47,14 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   timeout_shutdown_vm = 300  # 5 minutes timeout for shutdown operations
 
+  # Prevent replacement of existing VMs when importing from state
+  lifecycle {
+    ignore_changes = [
+      clone,
+      initialization,
+    ]
+  }
+
   clone {
     vm_id     = var.template_id
     node_name = var.template_node
