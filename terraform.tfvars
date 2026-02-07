@@ -77,7 +77,7 @@ pve2_ubuntu_vm_mac_addresses = ["52:54:00:36:34:cb"]
 # Ubuntu High-Memory VMs on pve2
 pve2_ubuntu_highmem_vm_count         = 1
 pve2_ubuntu_highmem_vm_name          = "ubuntu-highmem-vm"
-pve2_ubuntu_highmem_vm_cores         = 2
+pve2_ubuntu_highmem_vm_cores         = 4
 pve2_ubuntu_highmem_vm_memory        = 8192
 pve2_ubuntu_highmem_vm_disk_size     = 20
 pve2_ubuntu_highmem_vm_mac_addresses = ["52:54:00:0d:69:41"]
@@ -186,8 +186,13 @@ pve5_talos_template_id   = 9401
 # Ubuntu VMs on pve5 (disabled)
 pve5_ubuntu_vm_count = 0
 
-# Ubuntu High-Memory VMs on pve5 (disabled)
-pve5_ubuntu_highmem_vm_count = 0
+# Ubuntu High-Memory VMs on pve4
+pve5_ubuntu_highmem_vm_count         = 1
+pve5_ubuntu_highmem_vm_name          = "ubuntu-highmem-vm"
+pve5_ubuntu_highmem_vm_cores         = 4
+pve5_ubuntu_highmem_vm_memory        = 8192
+pve5_ubuntu_highmem_vm_disk_size     = 50
+pve5_ubuntu_highmem_vm_mac_addresses = ["52:54:00:dd:14:d9"]
 
 # Talos VMs on pve5 (disabled)
 pve5_talos_vm_count = 0
