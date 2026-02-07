@@ -37,8 +37,8 @@ pve1_archlinux_vm_disk_size = 20
 # Talos VMs on pve1
 pve1_talos_vm_count         = 1
 pve1_talos_vm_name          = "talos-vm"
-pve1_talos_vm_cores         = 4
-pve1_talos_vm_memory        = 8192
+pve1_talos_vm_cores         = 8
+pve1_talos_vm_memory        = 12288
 pve1_talos_vm_disk_size     = 30
 pve1_talos_vm_mac_addresses = ["52:54:00:c4:9c:d7"]
 
@@ -85,8 +85,8 @@ pve2_ubuntu_highmem_vm_mac_addresses = ["52:54:00:0d:69:41"]
 # Talos VMs on pve2
 pve2_talos_vm_count         = 1
 pve2_talos_vm_name          = "talos-vm"
-pve2_talos_vm_cores         = 4
-pve2_talos_vm_memory        = 8192
+pve2_talos_vm_cores         = 8
+pve2_talos_vm_memory        = 12288
 pve2_talos_vm_disk_size     = 30
 pve2_talos_vm_mac_addresses = ["52:54:00:cd:0f:61"]
 
