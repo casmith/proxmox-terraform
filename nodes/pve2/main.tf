@@ -101,6 +101,10 @@ module "talos_vms" {
 
   use_cloud_init    = false
   enable_qemu_agent = true
+
+  # Disk performance optimizations
+  disk_iothread = true
+  disk_ssd      = true
 }
 
 # ============================================================================
@@ -135,6 +139,10 @@ module "talos_sandbox_vms" {
 
   use_cloud_init    = false
   enable_qemu_agent = true
+
+  # Disk performance optimizations
+  disk_iothread = true
+  disk_ssd      = true
 }
 
 # ============================================================================
@@ -169,4 +177,8 @@ module "talos_obs_vms" {
 
   use_cloud_init    = false
   enable_qemu_agent = true
+
+  # Disk performance optimizations
+  disk_iothread = true
+  disk_ssd      = true
 }

@@ -15,11 +15,11 @@
     cloud_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
     # Template ID mapping by node
     template_ids:
-      proxmox-01: 9000
-      proxmox-02: 9100
-      proxmox-03: 9200
-      proxmox-04: 9300
-      proxmox-05: 9400
+      pve1: 9000
+      pve2: 9100
+      pve3: 9200
+      pve4: 9300
+      pve5: 9400
 
   tasks:
     - name: Set template ID for this node
@@ -123,16 +123,16 @@
     memory: 4096
     cores: 2
     bridge: "vmbr0"
-    talos_version: "v1.11.5"
+    talos_version: "v1.12.0"
     # Schematic ID: dc7b152cb3ea99b821fcb7340ce7168313ce393d663740b791c36f6e95fc8586 (includes siderolabs/qemu-guest-agent)
     talos_image_url: "https://factory.talos.dev/image/dc7b152cb3ea99b821fcb7340ce7168313ce393d663740b791c36f6e95fc8586/{{ talos_version }}/nocloud-amd64.raw.xz"
     # Template ID mapping by node
     template_ids:
-      proxmox-01: 9001
-      proxmox-02: 9101
-      proxmox-03: 9201
-      proxmox-04: 9301
-      proxmox-05: 9401
+      pve1: 9001
+      pve2: 9101
+      pve3: 9201
+      pve4: 9301
+      pve5: 9401
 
   tasks:
     - name: Set template ID for this node
@@ -244,11 +244,11 @@
     cloud_image_url: "https://mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
     # Template ID mapping by node
     template_ids:
-      proxmox-01: 9002
-      proxmox-02: 9102
-      proxmox-03: 9202
-      proxmox-04: 9302
-      proxmox-05: 9402
+      pve1: 9002
+      pve2: 9102
+      pve3: 9202
+      pve4: 9302
+      pve5: 9402
 
   tasks:
     - name: Set template ID for this node
@@ -351,6 +351,6 @@
           - "============================================"
           - ""
           - "Templates created:"
-          - "  {% if inventory_hostname == 'proxmox-01' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002{% elif inventory_hostname == 'proxmox-02' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102{% elif inventory_hostname == 'proxmox-03' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202{% elif inventory_hostname == 'proxmox-04' %}Ubuntu: 9300, Talos: 9301, Arch Linux: 9302{% elif inventory_hostname == 'proxmox-05' %}Ubuntu: 9400, Talos: 9401, Arch Linux: 9402{% endif %}"
+          - "  {% if inventory_hostname == 'pve1' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002{% elif inventory_hostname == 'pve2' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102{% elif inventory_hostname == 'pve3' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202{% elif inventory_hostname == 'pve4' %}Ubuntu: 9300, Talos: 9301, Arch Linux: 9302{% elif inventory_hostname == 'pve5' %}Ubuntu: 9400, Talos: 9401, Arch Linux: 9402{% endif %}"
           - ""
           - "Ready to use with Terraform!"

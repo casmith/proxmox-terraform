@@ -126,3 +126,27 @@ variable "use_cloud_init" {
   type        = bool
   default     = true
 }
+
+variable "disk_iothread" {
+  description = "Enable dedicated I/O thread for disk operations (improves performance)"
+  type        = bool
+  default     = false
+}
+
+variable "disk_ssd" {
+  description = "Enable SSD emulation (improves I/O scheduler decisions)"
+  type        = bool
+  default     = false
+}
+
+variable "disk_cache" {
+  description = "Disk cache mode (none, directsync, writethrough, writeback, unsafe)"
+  type        = string
+  default     = "none"
+}
+
+variable "disk_discard" {
+  description = "Enable discard/TRIM support (ignore or on)"
+  type        = string
+  default     = "ignore"
+}

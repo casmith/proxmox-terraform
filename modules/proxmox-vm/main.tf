@@ -78,6 +78,10 @@ resource "proxmox_virtual_environment_vm" "vm" {
     datastore_id = var.vm_storage
     interface    = "scsi0"
     size         = var.vm_disk_size
+    iothread     = var.disk_iothread
+    ssd          = var.disk_ssd
+    cache        = var.disk_cache
+    discard      = var.disk_discard
   }
 
   network_device {
