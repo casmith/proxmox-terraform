@@ -202,3 +202,55 @@ pve5_talos_sandbox_vm_count = 0
 # Talos Obs VMs on pve5 (disabled)
 pve5_talos_obs_vm_count = 0
 
+# ============================================================================
+# Uptime Kuma VM Monitors
+# ============================================================================
+# Each entry needs: name, type (ping|port|http)
+#   ping: requires hostname
+#   port: requires hostname + port
+#   http: requires url (optional: accepted_status_codes, ignore_tls)
+# All types support optional: interval (default 60)
+
+vm_monitors = {
+  # Example ping monitor - basic VM reachability
+  # "ubuntu-vm-01" = {
+  #   name     = "VM - ubuntu-vm-01"
+  #   type     = "ping"
+  #   hostname = "192.168.10.x"
+  # }
+
+  # Example port monitor - check a specific service port
+  # "talos-vm-01-k8s-api" = {
+  #   name     = "Talos - talos-vm-01 K8s API"
+  #   type     = "port"
+  #   hostname = "192.168.10.x"
+  #   port     = 6443
+  # }
+
+  # Example HTTP monitor - check a web service
+  # "my-web-app" = {
+  #   name       = "App - my-web-app"
+  #   type       = "http"
+  #   url        = "https://myapp.kalde.in"
+  #   ignore_tls = true
+  # }
+
+  "ubuntu-vm-01" = {
+    name     = "VM - pve1-ubuntu-1"
+    type     = "ping"
+    hostname = "192.168.10.35"
+  }
+
+  "ubuntu-vm-01" = {
+    name     = "VM - pve5-ubuntu-highmem-1"
+    type     = "ping"
+    hostname = "192.168.10.50"
+  }
+
+  "immich" = {
+    name       = "App - immich"
+    type       = "http"
+    url        = "https://photos.kalde.in"
+  }
+}
+

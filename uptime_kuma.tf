@@ -1,5 +1,5 @@
 # Uptime Kuma Monitoring
-# Manages ping monitors for Proxmox hosts via the ehealth-co-id/uptimekuma provider
+# Manages monitors for Proxmox hosts and VMs via the ehealth-co-id/uptimekuma provider
 
 provider "uptimekuma" {
   base_url = var.uptimekuma_base_url
@@ -23,4 +23,48 @@ resource "uptimekuma_monitor" "proxmox_hosts" {
   interval       = 60
   retry_interval = 30
   max_retries    = 3
+}
+
+# VM monitors - supports ping, port, and http types
+locals {
+  ping_monitors = { for k, v in var.vm_monitors : k => v if v.type == "ping" }
+  port_monitors = { for k, v in var.vm_monitors : k => v if v.type == "port" }
+  http_monitors = { for k, v in var.vm_monitors : k => v if v.type == "http" }
+}
+
+resource "uptimekuma_monitor" "vm_ping" {
+  for_each = local.ping_monitors
+
+  name           = each.value.name
+  type           = "ping"
+  hostname       = each.value.hostname
+  interval       = lookup(each.value, "interval", 60)
+  retry_interval = 30
+  max_retries    = 3
+}
+
+resource "uptimekuma_monitor" "vm_port" {
+  for_each = local.port_monitors
+
+  name           = each.value.name
+  type           = "port"
+  hostname       = each.value.hostname
+  port           = each.value.port
+  interval       = lookup(each.value, "interval", 60)
+  retry_interval = 30
+  max_retries    = 3
+}
+
+resource "uptimekuma_monitor" "vm_http" {
+  for_each = local.http_monitors
+
+  name                  = each.value.name
+  type                  = "http"
+  url                   = each.value.url
+  method                = "GET"
+  interval              = lookup(each.value, "interval", 60)
+  retry_interval        = 30
+  max_retries           = 3
+  accepted_status_codes = lookup(each.value, "accepted_status_codes", [200])
+  ignore_tls            = lookup(each.value, "ignore_tls", false)
 }

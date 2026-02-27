@@ -15,6 +15,12 @@ variable "uptimekuma_base_url" {
   default     = "https://uptime-obs.kalde.in"
 }
 
+variable "vm_monitors" {
+  description = "Map of VM monitors for Uptime Kuma. Key is a unique identifier. Each entry needs: name, type (ping|port|http), hostname (for ping/port), port (for port), url (for http)."
+  type        = map(any)
+  default     = {}
+}
+
 variable "proxmox_api_url" {
   description = "Proxmox API URL"
   type        = string
