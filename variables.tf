@@ -5,6 +5,16 @@
 # Proxmox Provider Configuration
 # ============================================================================
 
+# ============================================================================
+# Uptime Kuma Configuration
+# ============================================================================
+
+variable "uptimekuma_base_url" {
+  description = "Uptime Kuma base URL"
+  type        = string
+  default     = "https://uptime-obs.kalde.in"
+}
+
 variable "proxmox_api_url" {
   description = "Proxmox API URL"
   type        = string

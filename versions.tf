@@ -10,6 +10,10 @@ terraform {
       source  = "carlpett/sops"
       version = "~> 1.1"
     }
+    uptimekuma = {
+      source  = "ehealth-co-id/uptimekuma"
+      version = "~> 1.0"
+    }
   }
 
   backend "s3" {

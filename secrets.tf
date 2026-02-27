@@ -13,4 +13,6 @@ locals {
   ssh_keys                 = data.sops_file.secrets.data["ssh_keys"]
   s3_access_key            = data.sops_file.secrets.data["s3_access_key"]
   s3_secret_key            = data.sops_file.secrets.data["s3_secret_key"]
+  uptimekuma_username      = data.sops_file.secrets.data["uptimekuma_username"]
+  uptimekuma_password      = data.sops_file.secrets.data["uptimekuma_password"]
 }
