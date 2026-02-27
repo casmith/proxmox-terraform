@@ -21,6 +21,18 @@ variable "vm_monitors" {
   default     = {}
 }
 
+variable "valheim_monitors" {
+  description = "Map of Valheim server monitors using HTTP JSON query. Each entry needs: name, url, json_path, expected_value."
+  type = map(object({
+    name           = string
+    url            = string
+    json_path      = string
+    expected_value = string
+    interval       = optional(number)
+  }))
+  default = {}
+}
+
 variable "proxmox_api_url" {
   description = "Proxmox API URL"
   type        = string
