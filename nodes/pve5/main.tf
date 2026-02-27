@@ -16,7 +16,7 @@ module "ubuntu_vms" {
   vm_tags      = var.ubuntu_vm_tags
 
   template_id   = var.ubuntu_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.ubuntu_vm_cores
   vm_memory    = var.ubuntu_vm_memory
@@ -50,7 +50,7 @@ module "ubuntu_highmem_vms" {
   vm_tags      = var.ubuntu_vm_tags
 
   template_id   = var.ubuntu_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.ubuntu_highmem_vm_cores
   vm_memory    = var.ubuntu_highmem_vm_memory
@@ -84,7 +84,7 @@ module "talos_vms" {
   vm_tags      = var.talos_vm_tags
 
   template_id   = var.talos_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.talos_vm_cores
   vm_memory    = var.talos_vm_memory
@@ -101,6 +101,10 @@ module "talos_vms" {
 
   use_cloud_init    = false
   enable_qemu_agent = true
+
+  # Disk performance optimizations
+  disk_iothread = true
+  disk_ssd      = true
 }
 
 # ============================================================================
@@ -118,7 +122,7 @@ module "talos_sandbox_vms" {
   vm_tags      = var.talos_sandbox_vm_tags
 
   template_id   = var.talos_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.talos_sandbox_vm_cores
   vm_memory    = var.talos_sandbox_vm_memory
@@ -135,4 +139,42 @@ module "talos_sandbox_vms" {
 
   use_cloud_init    = false
   enable_qemu_agent = true
+}
+
+# ============================================================================
+# Talos Obs VMs
+# ============================================================================
+
+module "talos_obs_vms" {
+  source = "../../modules/proxmox-vm"
+
+  count = var.talos_obs_vm_count > 0 ? 1 : 0
+
+  proxmox_node = var.proxmox_node
+  vm_count     = var.talos_obs_vm_count
+  vm_name      = var.talos_obs_vm_name
+  vm_tags      = var.talos_obs_vm_tags
+
+  template_id   = var.talos_template_id
+  template_node = null # Template is on same node
+
+  vm_cores     = var.talos_obs_vm_cores
+  vm_memory    = var.talos_obs_vm_memory
+  vm_disk_size = var.talos_obs_vm_disk_size
+  vm_storage   = var.vm_storage
+
+  vm_network_bridge = var.vm_network_bridge
+  vm_ip_address     = var.vm_ip_address
+  vm_gateway        = var.vm_gateway
+  vm_mac_addresses  = var.talos_obs_vm_mac_addresses
+
+  vm_user  = "talos"
+  ssh_keys = var.ssh_keys
+
+  use_cloud_init    = false
+  enable_qemu_agent = true
+
+  # Disk performance optimizations
+  disk_iothread = true
+  disk_ssd      = true
 }

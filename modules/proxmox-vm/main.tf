@@ -4,7 +4,9 @@ locals {
 users:
   - name: ${var.vm_user}
     ssh_authorized_keys:
-      - ${trimspace(var.ssh_keys)}
+%{for key in var.ssh_keys~}
+      - ${trimspace(key)}
+%{endfor~}
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: sudo
     shell: /bin/bash
@@ -45,7 +47,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   on_boot   = true
   started   = true
 
-  timeout_shutdown_vm = 300  # 5 minutes timeout for shutdown operations
+  timeout_shutdown_vm = 300 # 5 minutes timeout for shutdown operations
 
   # Prevent replacement of existing VMs when importing from state
   lifecycle {
@@ -95,7 +97,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
     user_account {
       username = var.vm_user
-      keys     = length(trimspace(var.ssh_keys)) > 0 ? [trimspace(var.ssh_keys)] : []
+      keys     = [for key in var.ssh_keys : trimspace(key)]
     }
 
     ip_config {

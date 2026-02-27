@@ -1168,6 +1168,49 @@ variable "pve5_talos_sandbox_vm_tags" {
   default     = "terraform;talos;kubernetes;sandbox"
 }
 
+# Talos Obs VMs on pve5
+variable "pve5_talos_obs_vm_count" {
+  description = "Number of Talos Obs VMs on pve5"
+  type        = number
+  default     = 0
+}
+
+variable "pve5_talos_obs_vm_name" {
+  description = "Base name for Talos Obs VMs on pve5"
+  type        = string
+  default     = "talos-obs"
+}
+
+variable "pve5_talos_obs_vm_cores" {
+  description = "CPU cores for Talos Obs VMs on pve5"
+  type        = number
+  default     = 4
+}
+
+variable "pve5_talos_obs_vm_memory" {
+  description = "Memory in MB for Talos Obs VMs on pve5"
+  type        = number
+  default     = 8192
+}
+
+variable "pve5_talos_obs_vm_disk_size" {
+  description = "Disk size in GB for Talos Obs VMs on pve5"
+  type        = number
+  default     = 50
+}
+
+variable "pve5_talos_obs_vm_mac_addresses" {
+  description = "MAC addresses for Talos Obs VMs on pve5"
+  type        = list(string)
+  default     = []
+}
+
+variable "pve5_talos_obs_vm_tags" {
+  description = "Tags for Talos Obs VMs on pve5"
+  type        = string
+  default     = "terraform;talos;kubernetes;monitoring"
+}
+
 
 
 

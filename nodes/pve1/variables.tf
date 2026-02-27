@@ -36,7 +36,7 @@ variable "vm_gateway" {
 
 variable "ssh_keys" {
   description = "SSH public keys for VM access"
-  type        = string
+  type        = list(string)
 }
 
 # ============================================================================

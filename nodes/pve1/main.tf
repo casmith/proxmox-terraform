@@ -16,7 +16,7 @@ module "ubuntu_vms" {
   vm_tags      = var.ubuntu_vm_tags
 
   template_id   = var.ubuntu_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.ubuntu_vm_cores
   vm_memory    = var.ubuntu_vm_memory
@@ -50,7 +50,7 @@ module "archlinux_vms" {
   vm_tags      = var.archlinux_vm_tags
 
   template_id   = var.archlinux_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.archlinux_vm_cores
   vm_memory    = var.archlinux_vm_memory
@@ -84,7 +84,7 @@ module "talos_vms" {
   vm_tags      = var.talos_vm_tags
 
   template_id   = var.talos_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.talos_vm_cores
   vm_memory    = var.talos_vm_memory
@@ -124,7 +124,7 @@ module "talos_sandbox_vms" {
   vm_tags      = var.talos_sandbox_vm_tags
 
   template_id   = var.talos_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.talos_sandbox_vm_cores
   vm_memory    = var.talos_sandbox_vm_memory
@@ -164,7 +164,7 @@ module "talos_obs_vms" {
   vm_tags      = var.talos_obs_vm_tags
 
   template_id   = var.talos_template_id
-  template_node = null  # Template is on same node
+  template_node = null # Template is on same node
 
   vm_cores     = var.talos_obs_vm_cores
   vm_memory    = var.talos_obs_vm_memory

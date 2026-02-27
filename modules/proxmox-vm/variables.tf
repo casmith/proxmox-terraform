@@ -87,8 +87,8 @@ variable "vm_user" {
 
 variable "ssh_keys" {
   description = "SSH public keys to add to the VM"
-  type        = string
-  default     = ""
+  type        = list(string)
+  default     = []
 }
 
 variable "cloud_init_packages" {

@@ -85,8 +85,8 @@ module "pve2" {
   ssh_keys          = local.ssh_keys
 
   # Template IDs (node-specific, defined in nodes/pve2/terraform.tfvars)
-  ubuntu_template_id  = var.pve2_ubuntu_template_id
-  talos_template_id   = var.pve2_talos_template_id
+  ubuntu_template_id = var.pve2_ubuntu_template_id
+  talos_template_id  = var.pve2_talos_template_id
 
   # Ubuntu VM configuration
   ubuntu_vm_count         = var.pve2_ubuntu_vm_count
@@ -151,8 +151,8 @@ module "pve3" {
   ssh_keys          = local.ssh_keys
 
   # Template IDs (node-specific)
-  ubuntu_template_id  = var.pve3_ubuntu_template_id
-  talos_template_id   = var.pve3_talos_template_id
+  ubuntu_template_id = var.pve3_ubuntu_template_id
+  talos_template_id  = var.pve3_talos_template_id
 
   # Ubuntu VM configuration
   ubuntu_vm_count         = var.pve3_ubuntu_vm_count
@@ -218,8 +218,8 @@ module "pve4" {
   ssh_keys          = local.ssh_keys
 
   # Template IDs (node-specific)
-  ubuntu_template_id  = var.pve4_ubuntu_template_id
-  talos_template_id   = var.pve4_talos_template_id
+  ubuntu_template_id = var.pve4_ubuntu_template_id
+  talos_template_id  = var.pve4_talos_template_id
 
   # Ubuntu VM configuration
   ubuntu_vm_count         = var.pve4_ubuntu_vm_count
@@ -274,8 +274,8 @@ module "pve5" {
   ssh_keys          = local.ssh_keys
 
   # Template IDs (node-specific)
-  ubuntu_template_id  = var.pve5_ubuntu_template_id
-  talos_template_id   = var.pve5_talos_template_id
+  ubuntu_template_id = var.pve5_ubuntu_template_id
+  talos_template_id  = var.pve5_talos_template_id
 
   # Ubuntu VM configuration
   ubuntu_vm_count         = var.pve5_ubuntu_vm_count
@@ -312,4 +312,13 @@ module "pve5" {
   talos_sandbox_vm_disk_size     = var.pve5_talos_sandbox_vm_disk_size
   talos_sandbox_vm_mac_addresses = var.pve5_talos_sandbox_vm_mac_addresses
   talos_sandbox_vm_tags          = var.pve5_talos_sandbox_vm_tags
+
+  # Talos Obs VM configuration
+  talos_obs_vm_count         = var.pve5_talos_obs_vm_count
+  talos_obs_vm_name          = var.pve5_talos_obs_vm_name
+  talos_obs_vm_cores         = var.pve5_talos_obs_vm_cores
+  talos_obs_vm_memory        = var.pve5_talos_obs_vm_memory
+  talos_obs_vm_disk_size     = var.pve5_talos_obs_vm_disk_size
+  talos_obs_vm_mac_addresses = var.pve5_talos_obs_vm_mac_addresses
+  talos_obs_vm_tags          = var.pve5_talos_obs_vm_tags
 }

@@ -191,6 +191,16 @@ output "pve5_talos_sandbox_vm_ips" {
   value       = module.pve5.talos_sandbox_vm_ips
 }
 
+output "pve5_talos_obs_vm_details" {
+  description = "Talos Obs VMs on pve5"
+  value       = module.pve5.talos_obs_vm_details
+}
+
+output "pve5_talos_obs_vm_ips" {
+  description = "Talos Obs VM IPs on pve5"
+  value       = module.pve5.talos_obs_vm_ips
+}
+
 output "pve5_all_vms" {
   description = "All VMs on pve5"
   value       = module.pve5.all_vms

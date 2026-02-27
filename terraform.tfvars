@@ -63,8 +63,8 @@ pve1_talos_obs_vm_mac_addresses = ["52:54:00:62:80:ec"]
 # ============================================================================
 
 # Template IDs on pve2 (local-lvm storage)
-pve2_ubuntu_template_id  = 9100
-pve2_talos_template_id   = 9101
+pve2_ubuntu_template_id = 9100
+pve2_talos_template_id  = 9101
 
 # Ubuntu VMs on pve2
 pve2_ubuntu_vm_count         = 1
@@ -90,7 +90,6 @@ pve2_talos_vm_memory        = 12288
 pve2_talos_vm_disk_size     = 100
 pve2_talos_vm_mac_addresses = ["52:54:00:cd:0f:61"]
 
-
 # Talos Sandbox VMs on pve2
 pve2_talos_sandbox_vm_count         = 2
 pve2_talos_sandbox_vm_name          = "talos-sandbox-pve2"
@@ -112,8 +111,8 @@ pve2_talos_obs_vm_mac_addresses = ["52:54:00:f8:69:f9"]
 # ============================================================================
 
 # Template IDs on pve3 (local-lvm storage)
-pve3_ubuntu_template_id  = 9200
-pve3_talos_template_id   = 9201
+pve3_ubuntu_template_id = 9200
+pve3_talos_template_id  = 9201
 
 # Ubuntu VMs on pve3
 pve3_ubuntu_vm_count         = 1
@@ -150,8 +149,8 @@ pve3_talos_obs_vm_mac_addresses = ["52:54:00:ed:b7:ca"]
 # ============================================================================
 
 # Template IDs on pve4 (local-lvm storage)
-pve4_ubuntu_template_id  = 9300
-pve4_talos_template_id   = 9301
+pve4_ubuntu_template_id = 9300
+pve4_talos_template_id  = 9301
 
 # Ubuntu VMs on pve4
 pve4_ubuntu_vm_count         = 1
@@ -180,13 +179,13 @@ pve4_talos_sandbox_vm_count = 0
 # ============================================================================
 
 # Template IDs on pve5 (local-lvm storage)
-pve5_ubuntu_template_id  = 9400
-pve5_talos_template_id   = 9401
+pve5_ubuntu_template_id = 9400
+pve5_talos_template_id  = 9401
 
 # Ubuntu VMs on pve5 (disabled)
 pve5_ubuntu_vm_count = 0
 
-# Ubuntu High-Memory VMs on pve4
+# Ubuntu High-Memory VMs on pve5
 pve5_ubuntu_highmem_vm_count         = 1
 pve5_ubuntu_highmem_vm_name          = "ubuntu-highmem-vm"
 pve5_ubuntu_highmem_vm_cores         = 4
@@ -199,4 +198,7 @@ pve5_talos_vm_count = 0
 
 # Talos Sandbox VMs on pve5 (disabled)
 pve5_talos_sandbox_vm_count = 0
+
+# Talos Obs VMs on pve5 (disabled)
+pve5_talos_obs_vm_count = 0
 
