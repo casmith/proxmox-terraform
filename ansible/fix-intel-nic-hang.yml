@@ -18,17 +18,42 @@
 
     - name: Detect primary network interface if not specified
       set_fact:
-        detected_interface: "{{ ansible_default_ipv4.interface }}"
+        default_interface: "{{ ansible_default_ipv4.interface }}"
       when: network_interface == ''
 
     - name: Use specified interface
       set_fact:
-        detected_interface: "{{ network_interface }}"
+        default_interface: "{{ network_interface }}"
       when: network_interface != ''
+
+    - name: Check if default interface is a bridge
+      shell: "[ -d /sys/class/net/{{ default_interface }}/bridge ] && echo bridge || echo not_bridge"
+      register: bridge_check
+      changed_when: false
+      failed_when: false
+
+    - name: Get physical NIC behind bridge
+      shell: "ls /sys/class/net/{{ default_interface }}/brif/ | head -1"
+      register: bridge_member
+      changed_when: false
+      failed_when: false
+      when: bridge_check.stdout == 'bridge'
+
+    - name: Set detected interface to physical NIC behind bridge
+      set_fact:
+        detected_interface: "{{ bridge_member.stdout }}"
+      when:
+        - bridge_check.stdout == 'bridge'
+        - bridge_member.stdout | length > 0
+
+    - name: Set detected interface when not a bridge
+      set_fact:
+        detected_interface: "{{ default_interface }}"
+      when: bridge_check.stdout != 'bridge' or bridge_member.stdout | length == 0
 
     - name: Display detected interface
       debug:
-        msg: "Using network interface: {{ detected_interface }}"
+        msg: "Using network interface: {{ detected_interface }}{{ ' (physical NIC behind bridge ' + default_interface + ')' if bridge_check.stdout == 'bridge' and bridge_member.stdout | length > 0 else '' }}"
 
     - name: Check if interface uses Intel driver
       shell: ethtool -i {{ detected_interface }} 2>/dev/null | grep -i driver | awk '{print $2}'
