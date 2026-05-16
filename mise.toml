@@ -6,7 +6,7 @@ terraform = "latest"
 aws = "2"
 
 [env]
-SOPS_AGE_KEY_FILE = "age.key"
+SOPS_AGE_KEY_FILE = "{{config_root}}/age.key"
 
 [tasks.tfplan]
 run = """
