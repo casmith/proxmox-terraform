@@ -2,19 +2,19 @@ terraform {
   required_version = ">= 1.0"
 
   required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "~> 0.70"
-    }
     sops = {
       source  = "carlpett/sops"
       version = "~> 1.1"
+    }
+    uptimekuma = {
+      source  = "breml/uptimekuma"
+      version = "~> 0.3"
     }
   }
 
   backend "s3" {
     bucket = "terraform-state"
-    key    = "proxmox/terraform.tfstate"
+    key    = "proxmox/monitoring/terraform.tfstate"
     region = "us-east-1"
 
     endpoints = {
@@ -26,16 +26,5 @@ terraform {
     skip_region_validation      = true
     skip_requesting_account_id  = true
     use_path_style              = true
-  }
-}
-
-provider "proxmox" {
-  endpoint  = var.proxmox_api_url
-  api_token = "${local.proxmox_api_token_id}=${local.proxmox_api_token_secret}"
-  insecure  = var.proxmox_tls_insecure
-
-  ssh {
-    agent    = true
-    username = var.proxmox_ssh_user
   }
 }

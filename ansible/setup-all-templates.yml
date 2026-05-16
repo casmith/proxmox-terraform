@@ -1,7 +1,11 @@
 ---
 #  Unified Template Creation Playbook
 # Creates all VM templates on all cluster nodes with per-node template IDs
-# Template ID Schema: pve1=9000/9001, pve2=9100/9101, etc.
+# Template ID Schema:
+#   Ubuntu: pve1=9000, pve2=9100, ...
+#   Talos:  pve1=9001, pve2=9101, ...
+#   Arch:   pve1=9002, pve2=9102, ...
+#   NixOS:  pve1=9004, pve2=9104, ...
 
 - name: Create Ubuntu Templates on All Nodes
   hosts: proxmox_cluster
@@ -339,6 +343,155 @@
         state: absent
       when: vm_exists.rc != 0
 
+- name: Create NixOS Templates on All Nodes
+  hosts: proxmox_cluster
+  gather_facts: no
+  vars:
+    template_name: "nixos-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    build_dir: /var/lib/nixos-template-build
+    nix_profile_bin: /nix/var/nix/profiles/default/bin
+    # Template ID mapping by node
+    template_ids:
+      pve1: 9004
+      pve2: 9104
+      pve3: 9204
+      pve4: 9304
+      pve5: 9404
+
+  tasks:
+    - name: Set template ID for this node
+      set_fact:
+        template_id: "{{ template_ids[inventory_hostname] }}"
+
+    - name: Check if NixOS template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if NixOS template already exists
+      debug:
+        msg: "NixOS template {{ template_id }} already exists on {{ inventory_hostname }}, skipping"
+      when: vm_exists.rc == 0
+
+    - name: Install Nix via Determinate Systems installer (if missing)
+      shell: |
+        set -e
+        curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+          | sh -s -- install linux --no-confirm
+      args:
+        creates: "{{ nix_profile_bin }}/nix"
+      when: vm_exists.rc != 0
+
+    - name: Create build directory
+      file:
+        path: "{{ build_dir }}"
+        state: directory
+        mode: '0755'
+      when: vm_exists.rc != 0
+
+    - name: Copy NixOS flake and configuration to host
+      copy:
+        src: nixos-template/
+        dest: "{{ build_dir }}/"
+        mode: '0644'
+      when: vm_exists.rc != 0
+
+    - name: Build NixOS qcow2 image (first build takes ~10-20 min per node)
+      shell: |
+        set -e
+        export PATH={{ nix_profile_bin }}:$PATH
+        cd {{ build_dir }}
+        nix --extra-experimental-features 'nix-command flakes' \
+          build .#proxmox-qcow -L --out-link {{ build_dir }}/result
+      args:
+        executable: /bin/bash
+      when: vm_exists.rc != 0
+
+    - name: Locate generated qcow2 file
+      find:
+        paths: "{{ build_dir }}/result"
+        patterns: "*.qcow2"
+        follow: yes
+      register: qcow_files
+      when: vm_exists.rc != 0
+
+    - name: Fail if no qcow2 was produced
+      fail:
+        msg: "Expected qcow2 image not found under {{ build_dir }}/result"
+      when:
+        - vm_exists.rc != 0
+        - qcow_files.files | length == 0
+
+    - name: Create base NixOS VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        {{ qcow_files.files[0].path }}
+        {{ storage }}
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach imported disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot c
+        --bootdisk scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Remove build result symlink (keep store paths for future rebuilds)
+      file:
+        path: "{{ build_dir }}/result"
+        state: absent
+      when: vm_exists.rc != 0
+
 - name: Display Summary
   hosts: proxmox_cluster
   gather_facts: no
@@ -351,6 +504,6 @@
           - "============================================"
           - ""
           - "Templates created:"
-          - "  {% if inventory_hostname == 'pve1' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002{% elif inventory_hostname == 'pve2' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102{% elif inventory_hostname == 'pve3' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202{% elif inventory_hostname == 'pve4' %}Ubuntu: 9300, Talos: 9301, Arch Linux: 9302{% elif inventory_hostname == 'pve5' %}Ubuntu: 9400, Talos: 9401, Arch Linux: 9402{% endif %}"
+          - "  {% if inventory_hostname == 'pve1' %}Ubuntu: 9000, Talos: 9001, Arch Linux: 9002, NixOS: 9004{% elif inventory_hostname == 'pve2' %}Ubuntu: 9100, Talos: 9101, Arch Linux: 9102, NixOS: 9104{% elif inventory_hostname == 'pve3' %}Ubuntu: 9200, Talos: 9201, Arch Linux: 9202, NixOS: 9204{% elif inventory_hostname == 'pve4' %}Ubuntu: 9300, Talos: 9301, Arch Linux: 9302, NixOS: 9304{% elif inventory_hostname == 'pve5' %}Ubuntu: 9400, Talos: 9401, Arch Linux: 9402, NixOS: 9404{% endif %}"
           - ""
           - "Ready to use with Terraform!"

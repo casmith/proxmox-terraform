@@ -53,6 +53,11 @@ variable "talos_template_id" {
   type        = number
 }
 
+variable "nixos_template_id" {
+  description = "ID of the NixOS template on this node"
+  type        = number
+}
+
 
 
 # ============================================================================
@@ -262,4 +267,56 @@ variable "talos_obs_vm_tags" {
   description = "Tags for Talos Obs VMs (semicolon separated)"
   type        = string
   default     = "terraform;talos;kubernetes;monitoring"
+}
+
+# ============================================================================
+# NixOS VM Configuration
+# ============================================================================
+
+variable "nixos_vm_count" {
+  description = "Number of NixOS VMs to create on this node"
+  type        = number
+  default     = 0
+}
+
+variable "nixos_vm_name" {
+  description = "Base name for NixOS VMs"
+  type        = string
+  default     = "nixos-vm"
+}
+
+variable "nixos_vm_cores" {
+  description = "Number of CPU cores for NixOS VMs"
+  type        = number
+  default     = 2
+}
+
+variable "nixos_vm_memory" {
+  description = "Memory in MB for NixOS VMs"
+  type        = number
+  default     = 2048
+}
+
+variable "nixos_vm_disk_size" {
+  description = "Disk size in GB for NixOS VMs"
+  type        = number
+  default     = 20
+}
+
+variable "nixos_vm_user" {
+  description = "Default user for NixOS VMs"
+  type        = string
+  default     = "nixos"
+}
+
+variable "nixos_vm_tags" {
+  description = "Tags for NixOS VMs (semicolon separated)"
+  type        = string
+  default     = "terraform;nixos"
+}
+
+variable "nixos_vm_mac_addresses" {
+  description = "MAC addresses for NixOS VMs"
+  type        = list(string)
+  default     = []
 }

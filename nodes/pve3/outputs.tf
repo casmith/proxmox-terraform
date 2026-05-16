@@ -57,6 +57,20 @@ output "talos_sandbox_vm_ips" {
 }
 
 # ============================================================================
+# NixOS VM Outputs
+# ============================================================================
+
+output "nixos_vm_details" {
+  description = "Detailed information about NixOS VMs on pve3"
+  value       = try(module.nixos_vms[0].vm_details, {})
+}
+
+output "nixos_vm_ips" {
+  description = "IP addresses of NixOS VMs on pve3"
+  value       = try(module.nixos_vms[0].vm_ips, [])
+}
+
+# ============================================================================
 # Windows VM Outputs
 # ============================================================================
 
@@ -79,5 +93,6 @@ output "all_vms" {
     ubuntu_highmem = try(module.ubuntu_highmem_vms[0].vm_details, {})
     talos          = try(module.talos_vms[0].vm_details, {})
     talos_sandbox  = try(module.talos_sandbox_vms[0].vm_details, {})
+    nixos          = try(module.nixos_vms[0].vm_details, {})
   }
 }

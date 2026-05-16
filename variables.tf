@@ -5,34 +5,6 @@
 # Proxmox Provider Configuration
 # ============================================================================
 
-# ============================================================================
-# Uptime Kuma Configuration
-# ============================================================================
-
-variable "uptimekuma_base_url" {
-  description = "Uptime Kuma base URL"
-  type        = string
-  default     = "https://uptime-obs.kalde.in"
-}
-
-variable "vm_monitors" {
-  description = "Map of VM monitors for Uptime Kuma. Key is a unique identifier. Each entry needs: name, type (ping|port|http), hostname (for ping/port), port (for port), url (for http)."
-  type        = map(any)
-  default     = {}
-}
-
-variable "valheim_monitors" {
-  description = "Map of Valheim server monitors using HTTP JSON query. Each entry needs: name, url, json_path, expected_value."
-  type = map(object({
-    name           = string
-    url            = string
-    json_path      = string
-    expected_value = string
-    interval       = optional(number)
-  }))
-  default = {}
-}
-
 variable "proxmox_api_url" {
   description = "Proxmox API URL"
   type        = string
@@ -593,6 +565,12 @@ variable "pve3_talos_template_id" {
   default     = 9201
 }
 
+variable "pve3_nixos_template_id" {
+  description = "NixOS template ID on pve3"
+  type        = number
+  default     = 9204
+}
+
 # Ubuntu VMs on pve3
 variable "pve3_ubuntu_vm_count" {
   description = "Number of Ubuntu VMs on pve3"
@@ -806,6 +784,55 @@ variable "pve3_talos_obs_vm_tags" {
   description = "Tags for Talos Obs VMs on pve3"
   type        = string
   default     = "terraform;talos;kubernetes;monitoring"
+}
+
+# NixOS VMs on pve3
+variable "pve3_nixos_vm_count" {
+  description = "Number of NixOS VMs on pve3"
+  type        = number
+  default     = 0
+}
+
+variable "pve3_nixos_vm_name" {
+  description = "Base name for NixOS VMs on pve3"
+  type        = string
+  default     = "nixos-vm"
+}
+
+variable "pve3_nixos_vm_cores" {
+  description = "CPU cores for NixOS VMs on pve3"
+  type        = number
+  default     = 2
+}
+
+variable "pve3_nixos_vm_memory" {
+  description = "Memory in MB for NixOS VMs on pve3"
+  type        = number
+  default     = 2048
+}
+
+variable "pve3_nixos_vm_disk_size" {
+  description = "Disk size in GB for NixOS VMs on pve3"
+  type        = number
+  default     = 20
+}
+
+variable "pve3_nixos_vm_user" {
+  description = "Default user for NixOS VMs on pve3"
+  type        = string
+  default     = "nixos"
+}
+
+variable "pve3_nixos_vm_tags" {
+  description = "Tags for NixOS VMs on pve3"
+  type        = string
+  default     = "terraform;nixos"
+}
+
+variable "pve3_nixos_vm_mac_addresses" {
+  description = "MAC addresses for NixOS VMs on pve3"
+  type        = list(string)
+  default     = []
 }
 
 # ============================================================================

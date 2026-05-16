@@ -113,6 +113,7 @@ pve2_talos_obs_vm_mac_addresses = ["52:54:00:f8:69:f9"]
 # Template IDs on pve3 (local-lvm storage)
 pve3_ubuntu_template_id = 9200
 pve3_talos_template_id  = 9201
+pve3_nixos_template_id  = 9204
 
 # Ubuntu VMs on pve3
 pve3_ubuntu_vm_count         = 1
@@ -143,6 +144,13 @@ pve3_talos_obs_vm_cores         = 4
 pve3_talos_obs_vm_memory        = 8192
 pve3_talos_obs_vm_disk_size     = 50
 pve3_talos_obs_vm_mac_addresses = ["52:54:00:ed:b7:ca"]
+
+# NixOS VMs on pve3
+pve3_nixos_vm_count         = 1
+pve3_nixos_vm_name          = "nixos-vm"
+pve3_nixos_vm_cores         = 4
+pve3_nixos_vm_memory        = 2048
+pve3_nixos_vm_mac_addresses = ["52:54:00:4d:e5:5d"]
 
 # ============================================================================
 # pve4 Node Configuration
@@ -201,72 +209,4 @@ pve5_talos_sandbox_vm_count = 0
 
 # Talos Obs VMs on pve5 (disabled)
 pve5_talos_obs_vm_count = 0
-
-# ============================================================================
-# Uptime Kuma VM Monitors
-# ============================================================================
-# Each entry needs: name, type (ping|port|http)
-#   ping: requires hostname
-#   port: requires hostname + port
-#   http: requires url (optional: accepted_status_codes, ignore_tls)
-# All types support optional: interval (default 60)
-
-vm_monitors = {
-  # Example ping monitor - basic VM reachability
-  # "ubuntu-vm-01" = {
-  #   name     = "VM - ubuntu-vm-01"
-  #   type     = "ping"
-  #   hostname = "192.168.10.x"
-  # }
-
-  # Example port monitor - check a specific service port
-  # "talos-vm-01-k8s-api" = {
-  #   name     = "Talos - talos-vm-01 K8s API"
-  #   type     = "port"
-  #   hostname = "192.168.10.x"
-  #   port     = 6443
-  # }
-
-  # Example HTTP monitor - check a web service
-  # "my-web-app" = {
-  #   name       = "App - my-web-app"
-  #   type       = "http"
-  #   url        = "https://myapp.kalde.in"
-  #   ignore_tls = true
-  # }
-
-  "pve1-ubuntu-1" = {
-    name     = "VM - pve1-ubuntu-1"
-    type     = "ping"
-    hostname = "192.168.10.35"
-  }
-
-  "pve5-ubuntu-highmem-1" = {
-    name     = "VM - pve5-ubuntu-highmem-1"
-    type     = "ping"
-    hostname = "192.168.10.50"
-  }
-
-  "immich" = {
-    name = "App - immich"
-    type = "http"
-    url  = "https://photos.kalde.in"
-  }
-}
-
-valheim_monitors = {
-  "valheim-1" = {
-    name           = "Valheim - Server 1"
-    url            = "http://192.168.10.41:9001/status.json"
-    json_path      = <<-EOT
-      (
-         $now := $toMillis($now()[0]);
-         $lastUpdate := $toMillis(last_status_update);
-         $minutesDiff := ($now - $lastUpdate) / 60000;
-         error = null and $minutesDiff <= 1 ? "healthy" : "unhealthy"
-      )
-    EOT
-    expected_value = "healthy"
-  }
-}
 

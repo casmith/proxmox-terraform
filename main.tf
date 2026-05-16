@@ -153,6 +153,7 @@ module "pve3" {
   # Template IDs (node-specific)
   ubuntu_template_id = var.pve3_ubuntu_template_id
   talos_template_id  = var.pve3_talos_template_id
+  nixos_template_id  = var.pve3_nixos_template_id
 
   # Ubuntu VM configuration
   ubuntu_vm_count         = var.pve3_ubuntu_vm_count
@@ -199,6 +200,15 @@ module "pve3" {
   talos_obs_vm_mac_addresses = var.pve3_talos_obs_vm_mac_addresses
   talos_obs_vm_tags          = var.pve3_talos_obs_vm_tags
 
+  # NixOS VM configuration
+  nixos_vm_count         = var.pve3_nixos_vm_count
+  nixos_vm_name          = var.pve3_nixos_vm_name
+  nixos_vm_cores         = var.pve3_nixos_vm_cores
+  nixos_vm_memory        = var.pve3_nixos_vm_memory
+  nixos_vm_disk_size     = var.pve3_nixos_vm_disk_size
+  nixos_vm_user          = var.pve3_nixos_vm_user
+  nixos_vm_tags          = var.pve3_nixos_vm_tags
+  nixos_vm_mac_addresses = var.pve3_nixos_vm_mac_addresses
 }
 
 

@@ -1,6 +1,6 @@
 [tools]
 ansible = "latest"
-python = "latest"
+python = "3.14.3"
 sops = "latest"
 terraform = "latest"
 aws = "2"
@@ -41,6 +41,27 @@ run = """
 export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
 export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
 terraform init
+"""
+
+[tasks.tfinit-monitoring]
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
+terraform -chdir=monitoring init
+"""
+
+[tasks.tfplan-monitoring]
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
+terraform -chdir=monitoring plan
+"""
+
+[tasks.tfapply-monitoring]
+run = """
+export AWS_ACCESS_KEY_ID=$(sops --decrypt secrets.yaml | grep 's3_access_key:' | awk '{print $2}' | tr -d '\r\n')
+export AWS_SECRET_ACCESS_KEY=$(sops --decrypt secrets.yaml | grep 's3_secret_key:' | awk '{print $2}' | tr -d '\r\n')
+terraform -chdir=monitoring apply
 """
 
 [tasks.ansible-ping]

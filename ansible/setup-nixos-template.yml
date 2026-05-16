@@ -1,0 +1,173 @@
+---
+- name: Create NixOS Template with QEMU Guest Agent on Proxmox
+  hosts: "{{ target_hosts | default('proxmox_cluster') }}"
+  gather_facts: no
+  vars:
+    # Default template IDs - override with -e for different nodes
+    # pve1: 9004, pve2: 9104, pve3: 9204, etc.
+    template_id: "{{ nixos_template_id | default(9004) }}"
+    template_name: "nixos-cloudinit-template"
+    storage: "local-lvm"
+    memory: 2048
+    cores: 2
+    bridge: "vmbr0"
+    build_dir: /var/lib/nixos-template-build
+    nix_profile_bin: /nix/var/nix/profiles/default/bin
+
+  tasks:
+    - name: Enable snippets on local storage for cloud-init
+      command: pvesm set local --content vztmpl,iso,backup,snippets
+      changed_when: false
+
+    - name: Check if template already exists
+      command: qm status {{ template_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Skip if template already exists
+      debug:
+        msg: "Template {{ template_id }} already exists on {{ inventory_hostname }}, skipping creation"
+      when: vm_exists.rc == 0
+
+    - name: Install Nix via Determinate Systems installer (if missing)
+      shell: |
+        set -e
+        curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+          | sh -s -- install linux --no-confirm
+      args:
+        creates: "{{ nix_profile_bin }}/nix"
+      when: vm_exists.rc != 0
+
+    - name: Create build directory
+      file:
+        path: "{{ build_dir }}"
+        state: directory
+        mode: '0755'
+      when: vm_exists.rc != 0
+
+    - name: Copy NixOS flake and configuration to host
+      copy:
+        src: nixos-template/
+        dest: "{{ build_dir }}/"
+        mode: '0644'
+      when: vm_exists.rc != 0
+
+    - name: Build NixOS qcow2 image (first build takes ~10-20 min)
+      shell: |
+        set -e
+        export PATH={{ nix_profile_bin }}:$PATH
+        cd {{ build_dir }}
+        nix --extra-experimental-features 'nix-command flakes' \
+          build .#proxmox-qcow -L --out-link {{ build_dir }}/result
+      args:
+        executable: /bin/bash
+      when: vm_exists.rc != 0
+
+    - name: Locate generated qcow2 file
+      find:
+        paths: "{{ build_dir }}/result"
+        patterns: "*.qcow2"
+        follow: yes
+      register: qcow_files
+      when: vm_exists.rc != 0
+
+    - name: Fail if no qcow2 was produced
+      fail:
+        msg: "Expected qcow2 image not found under {{ build_dir }}/result"
+      when:
+        - vm_exists.rc != 0
+        - qcow_files.files | length == 0
+
+    - name: Create base NixOS VM
+      command: >
+        qm create {{ template_id }}
+        --name {{ template_name }}
+        --memory {{ memory }}
+        --cores {{ cores }}
+        --net0 virtio,bridge={{ bridge }}
+      when: vm_exists.rc != 0
+
+    - name: Import disk to storage
+      command: >
+        qm importdisk {{ template_id }}
+        {{ qcow_files.files[0].path }}
+        {{ storage }}
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Attach imported disk
+      command: >
+        qm set {{ template_id }}
+        --scsihw virtio-scsi-pci
+        --scsi0 {{ storage }}:vm-{{ template_id }}-disk-0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add cloud-init drive
+      command: >
+        qm set {{ template_id }}
+        --ide2 {{ storage }}:cloudinit
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set boot disk
+      command: >
+        qm set {{ template_id }}
+        --boot c
+        --bootdisk scsi0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Add serial console
+      command: >
+        qm set {{ template_id }}
+        --serial0 socket
+        --vga serial0
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Enable QEMU agent
+      command: >
+        qm set {{ template_id }}
+        --agent enabled=1
+      when: vm_exists.rc != 0
+
+    - name: Configure VM hardware - Set CPU type
+      command: >
+        qm set {{ template_id }}
+        --cpu host
+      when: vm_exists.rc != 0
+
+    - name: Convert VM to template
+      command: qm template {{ template_id }}
+      when: vm_exists.rc != 0
+
+    - name: Remove build result symlink (keep store paths for future rebuilds)
+      file:
+        path: "{{ build_dir }}/result"
+        state: absent
+      when: vm_exists.rc != 0
+
+    - name: Wait for cluster configuration sync
+      pause:
+        seconds: 5
+        prompt: "Waiting for cluster configuration to sync across all nodes..."
+      when: vm_exists.rc != 0
+
+    - name: Display success message
+      debug:
+        msg:
+          - "============================================"
+          - "Template {{ template_id }} created successfully!"
+          - "============================================"
+          - ""
+          - "Template includes:"
+          - "  ✓ NixOS 25.11"
+          - "  ✓ qemu-guest profile (virtio drivers in initrd)"
+          - "  ✓ QEMU guest agent enabled"
+          - "  ✓ Cloud-init enabled (NoCloud + ConfigDrive datasources)"
+          - "  ✓ OpenSSH server (key-only auth)"
+          - "  ✓ Serial console wired to ttyS0"
+          - "  ✓ Root partition auto-grows on first boot"
+          - "  ✓ Stored on local-lvm storage"
+          - ""
+          - "Note: cloud-init `packages:` directives are a no-op on NixOS."
+          - "Set cloud_init_packages = [] in Terraform for NixOS VMs to avoid"
+          - "harmless warnings. SSH keys, user creation, and runcmd still work."
+      when: vm_exists.rc != 0

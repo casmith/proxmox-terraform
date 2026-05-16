@@ -113,6 +113,16 @@ output "pve3_talos_sandbox_vm_ips" {
   value       = module.pve3.talos_sandbox_vm_ips
 }
 
+output "pve3_nixos_vm_details" {
+  description = "NixOS VMs on pve3"
+  value       = module.pve3.nixos_vm_details
+}
+
+output "pve3_nixos_vm_ips" {
+  description = "NixOS VM IPs on pve3"
+  value       = module.pve3.nixos_vm_ips
+}
+
 output "pve3_all_vms" {
   description = "All VMs on pve3"
   value       = module.pve3.all_vms

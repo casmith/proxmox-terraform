@@ -8,8 +8,8 @@ users:
       - ${trimspace(key)}
 %{endfor~}
     sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: sudo
-    shell: /bin/bash
+    groups: ${var.vm_user_groups}
+    shell: ${var.vm_user_shell}
 packages:
 %{for pkg in var.cloud_init_packages~}
   - ${pkg}

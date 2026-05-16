@@ -85,6 +85,18 @@ variable "vm_user" {
   default     = "ubuntu"
 }
 
+variable "vm_user_shell" {
+  description = "Login shell path for the VM user. NixOS needs /run/current-system/sw/bin/bash."
+  type        = string
+  default     = "/bin/bash"
+}
+
+variable "vm_user_groups" {
+  description = "Supplementary groups for the VM user. NixOS uses 'wheel' instead of 'sudo'."
+  type        = string
+  default     = "sudo"
+}
+
 variable "ssh_keys" {
   description = "SSH public keys to add to the VM"
   type        = list(string)

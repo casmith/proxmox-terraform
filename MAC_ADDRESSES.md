@@ -22,6 +22,8 @@ This file tracks which MAC addresses are assigned to which VMs.
 | 52:54:00:62:80:ec  | pve1-talos-obs-01          | pve1 | Talos monitoring cluster        | 192.168.10.47   |
 | 52:54:00:f8:69:f9  | pve2-talos-obs-01          | pve2 | Talos monitoring cluster        | 192.168.10.48   |
 | 52:54:00:ed:b7:ca  | pve3-talos-obs-01          | pve3 | Talos monitoring cluster        | 192.168.10.49   |
+| 52:54:00:dd:14:d9  | pve5-ubuntu-highmem-vm-01  | pve5 | Ubuntu 24.04 LTS (8GB RAM)      | 192.168.10.50   |
+| 52:54:00:4d:e5:5d  | pve3-nixos-vm-01           | pve3 | NixOS 25.11                     | 192.168.10.34   |
 
 
 ## Available MAC Addresses
@@ -29,8 +31,6 @@ This file tracks which MAC addresses are assigned to which VMs.
 The following MAC addresses are available for future VMs:
 
 ```
-52:54:00:4d:e5:5d - 192.168.10.34 (returned from pve1-talos-vm-02)
-52:54:00:dd:14:d9 - 192.168.10.50
 52:54:00:15:09:5d - 192.168.10.51
 52:54:00:11:67:63 - 192.168.10.52
 52:54:00:1b:8a:3f - 192.168.10.53

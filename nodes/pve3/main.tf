@@ -138,6 +138,43 @@ module "talos_sandbox_vms" {
 }
 
 # ============================================================================
+# NixOS VMs
+# ============================================================================
+
+module "nixos_vms" {
+  source = "../../modules/proxmox-vm"
+
+  count = var.nixos_vm_count > 0 ? 1 : 0
+
+  proxmox_node = var.proxmox_node
+  vm_count     = var.nixos_vm_count
+  vm_name      = var.nixos_vm_name
+  vm_tags      = var.nixos_vm_tags
+
+  template_id   = var.nixos_template_id
+  template_node = null # Template is on same node
+
+  vm_cores     = var.nixos_vm_cores
+  vm_memory    = var.nixos_vm_memory
+  vm_disk_size = var.nixos_vm_disk_size
+  vm_storage   = var.vm_storage
+
+  vm_network_bridge = var.vm_network_bridge
+  vm_ip_address     = var.vm_ip_address
+  vm_gateway        = var.vm_gateway
+  vm_mac_addresses  = var.nixos_vm_mac_addresses
+
+  vm_user        = var.nixos_vm_user
+  vm_user_shell  = "/run/current-system/sw/bin/bash"
+  vm_user_groups = "wheel,docker"
+  ssh_keys       = var.ssh_keys
+
+  # NixOS ignores cloud-init `packages:` (no apt/dnf); leave empty to avoid warnings.
+  cloud_init_packages = []
+  enable_qemu_agent   = true
+}
+
+# ============================================================================
 # Talos Obs VMs
 # ============================================================================
 

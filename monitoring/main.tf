@@ -2,9 +2,12 @@
 # Manages monitors for Proxmox hosts and VMs via the breml/uptimekuma provider
 
 provider "uptimekuma" {
-  endpoint = var.uptimekuma_base_url
-  username = local.uptimekuma_username
-  password = local.uptimekuma_password
+  endpoint            = var.uptimekuma_base_url
+  username            = local.uptimekuma_username
+  password            = local.uptimekuma_password
+  timeout             = "30s"
+  per_attempt_timeout = "8s"
+  max_retries         = 3
 }
 
 # Proxmox host ping monitors
